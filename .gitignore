@@ -1,0 +1,14 @@
+# Build artefacts
+/burnbox
+/cmd/burnbox/burnbox
+/dist/
+
+# Coverage output
+/coverage.out
+/coverage.tmp.out
+
+# Editor / OS junk
+.DS_Store
+*.swp
+*~
+.cache/
