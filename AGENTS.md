@@ -81,6 +81,16 @@ Changing it is a breaking change and a version bump of the `v1` tag.
   - Layout: first 16 bytes IV, last 32 bytes tag, middle is ciphertext.
   - The server treats this as an opaque string; only the client parses it.
 
+> **Pinned interop detail (do not change):** WebCrypto `AES-CTR` MUST use
+> `length: 128` so the *entire* 128-bit block is the counter — this is
+> what `openssl enc -aes-256-ctr -iv <16B>` does (full-block big-endian
+> increment). Any smaller `length` makes the browser and the shell path
+> diverge silently. Versioning is carried by the KDF labels
+> (`burnbox/v1/...`), so no version byte is stored on the wire; a future
+> `v2` simply changes the labels and old keys can't validate new blobs.
+> The server returns the raw blob as `application/octet-stream` (never
+> JSON-wrapped) so the recipient pipe stays a clean `curl | python3`.
+
 ### Reference recipient one-liner (must keep working)
 
 ```bash

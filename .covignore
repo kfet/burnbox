@@ -1,0 +1,15 @@
+# Paths excluded from the coverage gate (regex over coverage-profile lines).
+# Keep this list small and well-justified.
+
+# Entry point — flag parsing, signal handling, ListenAndServe wiring. The
+# pure dispatch logic in run() is still tested (cmd/burnbox/main_test.go),
+# but the serve/signal/shutdown plumbing has no behaviour worth a
+# coverage-driven test.
+github.com/kfet/burnbox/cmd/burnbox/main.go
+
+# Frontend static-check helper — invoked via `make lint-frontend`, not
+# exercised by go test.
+github.com/kfet/burnbox/scripts/lintfrontend/main.go
+
+# End-to-end test package — exercised by `make e2e`, not unit tests.
+^github.com/kfet/burnbox/e2e/

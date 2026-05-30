@@ -1,0 +1,85 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>burnbox — one-time secret</title>
+<style>
+  :root { --bg:#0f1115; --fg:#e6e6e6; --mut:#9aa4b2; --acc:#ff7a45; --card:#171a21; --bd:#262b35; }
+  * { box-sizing:border-box; }
+  body { margin:0; font:16px/1.5 ui-sans-serif,system-ui,-apple-system,Segoe UI,Roboto,sans-serif;
+         background:var(--bg); color:var(--fg); display:flex; min-height:100vh; }
+  main { margin:auto; width:100%; max-width:680px; padding:24px; }
+  h1 { font-size:1.4rem; margin:0 0 .25rem; }
+  h1 .b { color:var(--acc); }
+  p.sub { color:var(--mut); margin:.25rem 0 1.25rem; }
+  .card { background:var(--card); border:1px solid var(--bd); border-radius:12px; padding:18px; margin-bottom:16px; }
+  label { display:block; font-size:.8rem; color:var(--mut); margin-bottom:6px; text-transform:uppercase; letter-spacing:.05em; }
+  textarea, input[type=number] { width:100%; background:#0c0e12; color:var(--fg); border:1px solid var(--bd);
+            border-radius:8px; padding:10px 12px; font:inherit; resize:vertical; }
+  textarea { min-height:120px; font-family:ui-monospace,SFMono-Regular,Menlo,monospace; }
+  .row { display:flex; gap:12px; align-items:end; flex-wrap:wrap; }
+  .row > div { flex:1; min-width:140px; }
+  button { background:var(--acc); color:#150a05; border:0; border-radius:8px; padding:11px 18px;
+           font:inherit; font-weight:600; cursor:pointer; }
+  button:disabled { opacity:.5; cursor:default; }
+  button.ghost { background:transparent; color:var(--fg); border:1px solid var(--bd); font-weight:400; }
+  .out { word-break:break-all; font-family:ui-monospace,Menlo,monospace; font-size:.85rem;
+         background:#0c0e12; border:1px solid var(--bd); border-radius:8px; padding:10px 12px; }
+  .muted { color:var(--mut); font-size:.85rem; }
+  .err { color:#ff6b6b; }
+  .ok { color:#4ade80; }
+  a { color:var(--acc); }
+  .hide { display:none; }
+  pre { white-space:pre-wrap; word-break:break-all; }
+</style>
+</head>
+<body>
+<main>
+  <h1><span class="b">burn</span>box</h1>
+  <p class="sub">Server-blind one-time secrets. Encrypted in your browser; the key never leaves this page.</p>
+
+  <!-- CREATE -->
+  <section id="create" class="card">
+    <label for="secret">Secret</label>
+    <textarea id="secret" placeholder="Paste the secret to share…" autofocus></textarea>
+    <div class="row" style="margin-top:12px">
+      <div>
+        <label for="ttl">Expire after (hours)</label>
+        <input id="ttl" type="number" min="1" value="24">
+      </div>
+      <div style="flex:0">
+        <button id="enc">Encrypt &amp; create link</button>
+      </div>
+    </div>
+    <p id="cerr" class="err"></p>
+  </section>
+
+  <!-- LINK RESULT -->
+  <section id="result" class="card hide">
+    <label>One-time link <span class="muted">(opens once, then it's gone)</span></label>
+    <div class="out" id="link"></div>
+    <div class="row" style="margin-top:10px">
+      <div style="flex:0"><button id="copy" class="ghost">Copy link</button></div>
+      <div style="flex:0"><button id="copycli" class="ghost">Copy terminal recipe</button></div>
+      <div style="flex:0"><button id="again" class="ghost">New secret</button></div>
+    </div>
+    <p class="muted" style="margin-top:12px">Recipient with only a terminal? They can decrypt with
+       <code>curl</code> + <code>python3</code> + <code>openssl</code> — no installs. The
+       <span id="rlink"></span> page shows the exact command.</p>
+  </section>
+
+  <!-- VIEW (when arriving with #key) -->
+  <section id="view" class="card hide">
+    <label>Decrypted secret</label>
+    <div class="out"><pre id="plain"></pre></div>
+    <p id="verr" class="err"></p>
+    <p class="muted">This secret has now been destroyed on the server.</p>
+  </section>
+
+  <p class="muted">No plaintext, no key, and no logs of either ever reach the server. <a href="/">about</a></p>
+</main>
+
+<script src="/burnbox.js"></script>
+</body>
+</html>

@@ -1,0 +1,66 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>burnbox — terminal recipe</title>
+<style>
+  :root { --bg:#0f1115; --fg:#e6e6e6; --mut:#9aa4b2; --acc:#ff7a45; --card:#171a21; --bd:#262b35; }
+  * { box-sizing:border-box; }
+  body { margin:0; font:16px/1.5 ui-sans-serif,system-ui,-apple-system,Segoe UI,Roboto,sans-serif;
+         background:var(--bg); color:var(--fg); display:flex; min-height:100vh; }
+  main { margin:auto; width:100%; max-width:760px; padding:24px; }
+  h1 { font-size:1.3rem; } h1 .b { color:var(--acc); }
+  .card { background:var(--card); border:1px solid var(--bd); border-radius:12px; padding:18px; margin-bottom:16px; }
+  .muted { color:var(--mut); font-size:.9rem; }
+  pre { white-space:pre-wrap; word-break:break-all; background:#0c0e12; border:1px solid var(--bd);
+        border-radius:8px; padding:12px; font:13px/1.5 ui-monospace,Menlo,monospace; }
+  button { background:var(--acc); color:#150a05; border:0; border-radius:8px; padding:9px 16px;
+           font:inherit; font-weight:600; cursor:pointer; }
+  a { color:var(--acc); }
+  .err { color:#ff6b6b; }
+</style>
+</head>
+<body>
+<main>
+  <h1><span class="b">burn</span>box — terminal recipe</h1>
+  <p class="muted">Decrypt this one-time secret on a bare macOS / Linux box. Needs only
+     <code>curl</code>, <code>python3</code>, and <code>openssl</code> — nothing to install.
+     Running it <strong>burns</strong> the secret. The key below comes from this page's URL
+     fragment and is never sent to the server.</p>
+  <div class="card">
+    <pre id="cmd">Loading… (the decryption key must be present in this page's URL fragment)</pre>
+    <button id="copy">Copy command</button>
+    <p id="err" class="err"></p>
+  </div>
+  <p class="muted"><a href="/">← create a new secret</a></p>
+</main>
+<script>
+"use strict";
+(function () {
+  var parts = location.pathname.split("/");
+  var id = parts[parts.length - 1];
+  var key = location.hash.replace(/^#/, "");
+  var cmd = document.getElementById("cmd");
+  var err = document.getElementById("err");
+  if (!key) {
+    err.textContent = "No key in the URL fragment — this recipe link is incomplete.";
+    return;
+  }
+  var py =
+    "import sys,os,base64,hmac,hashlib,subprocess\n" +
+    "def u(s): return base64.urlsafe_b64decode(s+\"=\"*(-len(s)%4))\n" +
+    "b=u(sys.stdin.read().strip()); iv,ct,tag=b[:16],b[16:-32],b[-32:]\n" +
+    "m=u(os.environ[\"KEY\"])\n" +
+    "ek=hmac.new(m,b\"burnbox/v1/enc\",hashlib.sha256).digest()\n" +
+    "mk=hmac.new(m,b\"burnbox/v1/mac\",hashlib.sha256).digest()\n" +
+    "assert hmac.compare_digest(tag,hmac.new(mk,iv+ct,hashlib.sha256).digest()),\"bad MAC\"\n" +
+    "sys.stdout.buffer.write(subprocess.run([\"openssl\",\"enc\",\"-aes-256-ctr\",\"-d\",\"-K\",ek.hex(),\"-iv\",iv.hex()],input=ct,capture_output=True,check=True).stdout)";
+  var full = "KEY='" + key + "' curl -s " + location.origin + "/s/" + id +
+    " | python3 -c '" + py + "'";
+  cmd.textContent = full;
+  document.getElementById("copy").onclick = function () { navigator.clipboard.writeText(full); };
+})();
+</script>
+</body>
+</html>

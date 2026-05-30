@@ -1,0 +1,29 @@
+name: test
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+jobs:
+  test:
+    name: test (go ${{ matrix.go }})
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        go: ["1.22", "1.26"]
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-go@v5
+        with:
+          go-version: ${{ matrix.go }}
+          check-latest: true
+          # burnbox has no runtime deps and therefore no go.sum.
+          cache: false
+      - run: go version
+      # python3 + openssl are preinstalled on ubuntu-latest, so the e2e
+      # bare-OS recipient round-trip runs for real in CI.
+      - run: make all
+        env:
+          GOTOOLCHAIN: auto
