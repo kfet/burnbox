@@ -7,6 +7,12 @@ follow semantic versioning once it reaches 1.0.
 ## [Unreleased]
 
 ### Added
+- Path-relative frontend URLs so burnbox can be reverse-proxied under an
+  arbitrary path prefix (e.g. Tailscale `serve --set-path=/secret`, which
+  strips the prefix). Assets, fetches, and generated share/recipe links
+  all resolve against the document base instead of the host root.
+
+### Added
 - Deployment artefacts: `packaging/launchd/` macOS LaunchAgent template
   and `packaging/systemd/burnbox.service` user unit (for the Pis), plus
   a `deploy` skill documenting the test-then-prod flow behind Tailscale

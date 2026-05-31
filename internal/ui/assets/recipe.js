@@ -21,7 +21,7 @@
     "mk=hmac.new(m,b\"burnbox/v1/mac\",hashlib.sha256).digest()\n" +
     "assert hmac.compare_digest(tag,hmac.new(mk,iv+ct,hashlib.sha256).digest()),\"bad MAC\"\n" +
     "sys.stdout.buffer.write(subprocess.run([\"openssl\",\"enc\",\"-aes-256-ctr\",\"-d\",\"-K\",ek.hex(),\"-iv\",iv.hex()],input=ct,capture_output=True,check=True).stdout)";
-  var full = "KEY='" + key + "' curl -s " + location.origin + "/s/" + id +
+  var full = "KEY='" + key + "' curl -s " + new URL("../s/" + id, location.href).href +
     " | python3 -c '" + py + "'";
   cmd.textContent = full;
   document.getElementById("copy").onclick = function () { navigator.clipboard.writeText(full); };

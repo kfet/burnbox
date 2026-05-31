@@ -96,6 +96,15 @@ function timingSafeEqual(a, b) {
 
 const $ = (id) => document.getElementById(id);
 
+// baseURL returns the directory URL of the current page (with trailing
+// slash, hash/query stripped). Used to build absolute share/recipe links
+// that respect whatever path prefix burnbox is mounted under (e.g. a
+// Tailscale `--set-path=/secret` mount). All same-origin fetches use
+// plain relative paths so they resolve against this base automatically.
+function baseURL() {
+  return new URL(".", location.href).href;
+}
+
 async function doCreate() {
   $("cerr").textContent = "";
   const secret = $("secret").value;
@@ -104,15 +113,16 @@ async function doCreate() {
   $("enc").disabled = true;
   try {
     const { blob, key } = await encryptSecret(secret);
-    const res = await fetch("/s?ttl=" + (hours * 3600), {
+    const res = await fetch("s?ttl=" + (hours * 3600), {
       method: "POST",
       headers: { "Content-Type": "application/octet-stream" },
       body: blob,
     });
     if (!res.ok) throw new Error("server error " + res.status);
     const { id } = await res.json();
-    const url = location.origin + "/#" + id + "." + key;
-    const recipe = location.origin + "/r/" + id + "#" + key;
+    const base = baseURL();
+    const url = base + "#" + id + "." + key;
+    const recipe = base + "r/" + id + "#" + key;
     $("link").textContent = url;
     $("rlink").innerHTML = '<a href="' + recipe + '">terminal recipe</a>';
     $("copy").onclick = () => navigator.clipboard.writeText(url);
@@ -130,7 +140,7 @@ async function doView(id, key) {
   $("create").classList.add("hide");
   $("view").classList.remove("hide");
   try {
-    const res = await fetch("/s/" + id);
+    const res = await fetch("s/" + id);
     if (res.status === 404) throw new Error("This secret has already been viewed or has expired.");
     if (!res.ok) throw new Error("server error " + res.status);
     const blobStr = await res.text();
@@ -149,7 +159,7 @@ function init() {
     return;
   }
   $("enc").onclick = doCreate;
-  $("again").onclick = () => location.assign("/");
+  $("again").onclick = () => location.assign(baseURL());
 }
 
 document.addEventListener("DOMContentLoaded", init);
