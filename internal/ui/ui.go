@@ -22,3 +22,8 @@ var Script []byte
 //
 //go:embed assets/recipe.html
 var Recipe []byte
+
+// RecipeScript is the recipe page's client, served at "/recipe.js".
+//
+//go:embed assets/recipe.js
+var RecipeScript []byte

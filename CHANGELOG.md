@@ -17,8 +17,12 @@ follow semantic versioning once it reaches 1.0.
   (`GetDel`) and a background janitor.
 - `internal/server`: stdlib HTTP surface — `POST /s`, `GET /s/{id}`
   (burn), `GET /` (SPA), `GET /r/{id}` (terminal recipe page),
-  `GET /burnbox.js`, `GET /healthz`. No cryptography on the server side
-  by design.
+  `GET /burnbox.js`, `GET /recipe.js`, `GET /healthz`. No cryptography on
+  the server side by design.
+- Defence-in-depth response headers on all served pages/scripts: a
+  strict `Content-Security-Policy` (`script-src 'self'`, no inline JS),
+  `Referrer-Policy: no-referrer`, and `X-Content-Type-Options: nosniff`,
+  to harden the browser-delivered crypto against fragment exfiltration.
 - `internal/ui`: embedded WebCrypto single-page app and recipe page.
 - `cmd/burnbox`: `serve` and `version` subcommands.
 - `make all` pipeline: build + cross-compile matrix + gofmt + vet +

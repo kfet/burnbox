@@ -28,8 +28,26 @@ func New(st *store.Store) *Server {
 	s.mux.HandleFunc("GET /s/{id}", s.handleGet)
 	s.mux.HandleFunc("GET /r/{id}", s.handleRecipe)
 	s.mux.HandleFunc("GET /burnbox.js", s.handleScript)
+	s.mux.HandleFunc("GET /recipe.js", s.handleRecipeScript)
 	s.mux.HandleFunc("GET /", s.handleIndex)
 	return s
+}
+
+// contentSecurityPolicy locks the frontend down so a compromised page
+// can't exfiltrate the fragment key to a third party: scripts only from
+// same origin (no inline JS), network only to same origin. Inline styles
+// are allowed (they can't leak data the way scripts can).
+const contentSecurityPolicy = "default-src 'none'; script-src 'self'; " +
+	"style-src 'unsafe-inline'; connect-src 'self'; img-src 'self'; " +
+	"base-uri 'none'; form-action 'none'; frame-ancestors 'none'"
+
+// secureHeaders sets defence-in-depth headers for browser-delivered
+// pages and scripts.
+func secureHeaders(w http.ResponseWriter) {
+	h := w.Header()
+	h.Set("Content-Security-Policy", contentSecurityPolicy)
+	h.Set("Referrer-Policy", "no-referrer")
+	h.Set("X-Content-Type-Options", "nosniff")
 }
 
 // ServeHTTP implements http.Handler.
@@ -102,28 +120,38 @@ func (s *Server) handleGet(w http.ResponseWriter, r *http.Request) {
 	_, _ = w.Write(blob)
 }
 
+const (
+	ctHTML = "text/html; charset=utf-8"
+	ctJS   = "text/javascript; charset=utf-8"
+)
+
 func (s *Server) handleIndex(w http.ResponseWriter, r *http.Request) {
-	// Only the canonical root serves the SPA; unknown paths 404 (but
-	// still as the SPA-less JSON to avoid leaking a file tree).
+	// Only the canonical root serves the SPA; unknown paths 404 (as JSON,
+	// to avoid leaking a file tree).
 	if r.URL.Path != "/" {
 		writeJSON(w, http.StatusNotFound, map[string]string{"error": "not found"})
 		return
 	}
-	serveHTML(w, ui.Index)
+	serveAsset(w, ctHTML, ui.Index)
 }
 
 func (s *Server) handleRecipe(w http.ResponseWriter, _ *http.Request) {
-	serveHTML(w, ui.Recipe)
+	serveAsset(w, ctHTML, ui.Recipe)
 }
 
 func (s *Server) handleScript(w http.ResponseWriter, _ *http.Request) {
-	w.Header().Set("Content-Type", "text/javascript; charset=utf-8")
-	w.Header().Set("Cache-Control", "no-store")
-	_, _ = w.Write(ui.Script)
+	serveAsset(w, ctJS, ui.Script)
 }
 
-func serveHTML(w http.ResponseWriter, body []byte) {
-	w.Header().Set("Content-Type", "text/html; charset=utf-8")
+func (s *Server) handleRecipeScript(w http.ResponseWriter, _ *http.Request) {
+	serveAsset(w, ctJS, ui.RecipeScript)
+}
+
+// serveAsset writes an embedded static asset with security headers and a
+// no-store cache policy.
+func serveAsset(w http.ResponseWriter, contentType string, body []byte) {
+	secureHeaders(w)
+	w.Header().Set("Content-Type", contentType)
 	w.Header().Set("Cache-Control", "no-store")
 	_, _ = w.Write(body)
 }

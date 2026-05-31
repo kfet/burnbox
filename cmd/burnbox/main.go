@@ -89,9 +89,9 @@ func cmdServe(args []string, stdout, stderr io.Writer) int {
 	return serveUntilSignal(srv, stdout, stderr)
 }
 
-// serveUntilSignal runs srv until SIGINT/SIGTERM, then drains. It is
-// separated from cmdServe so tests can drive it with a pre-bound
-// listener and a synthetic signal.
+// serveUntilSignal runs srv until SIGINT/SIGTERM, then drains with a
+// bounded shutdown. Kept separate from cmdServe to keep flag-parsing and
+// run-loop concerns apart.
 func serveUntilSignal(srv *http.Server, stdout, stderr io.Writer) int {
 	ctx, stop := signal.NotifyContext(context.Background(), syscall.SIGINT, syscall.SIGTERM)
 	defer stop()

@@ -141,6 +141,7 @@ func TestPages(t *testing.T) {
 	}{
 		{"/", "text/html; charset=utf-8", "burn"},
 		{"/burnbox.js", "text/javascript; charset=utf-8", "AES-CTR"},
+		{"/recipe.js", "text/javascript; charset=utf-8", "openssl"},
 		{"/r/someid", "text/html; charset=utf-8", "recipe"},
 	}
 	for _, c := range cases {
@@ -158,6 +159,12 @@ func TestPages(t *testing.T) {
 		}
 		if !bytes.Contains(b, []byte(c.wantSub)) {
 			t.Fatalf("%s body missing %q", c.path, c.wantSub)
+		}
+		if csp := resp.Header.Get("Content-Security-Policy"); csp == "" {
+			t.Fatalf("%s missing Content-Security-Policy", c.path)
+		}
+		if resp.Header.Get("Referrer-Policy") != "no-referrer" {
+			t.Fatalf("%s missing Referrer-Policy", c.path)
 		}
 	}
 }

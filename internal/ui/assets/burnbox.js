@@ -15,8 +15,15 @@ const enc = new TextEncoder();
 const dec = new TextDecoder();
 
 function b64uEncode(bytes) {
-  let s = btoa(String.fromCharCode(...new Uint8Array(bytes)));
-  return s.replace(/\+/g, "-").replace(/\//g, "_").replace(/=+$/, "");
+  const u8 = new Uint8Array(bytes);
+  // Build the binary string in chunks: spreading a 256 KiB array into
+  // String.fromCharCode(...) arguments overflows the call stack.
+  let s = "";
+  const chunk = 0x8000;
+  for (let i = 0; i < u8.length; i += chunk) {
+    s += String.fromCharCode.apply(null, u8.subarray(i, i + chunk));
+  }
+  return btoa(s).replace(/\+/g, "-").replace(/\//g, "_").replace(/=+$/, "");
 }
 function b64uDecode(str) {
   str = str.replace(/-/g, "+").replace(/_/g, "/");
@@ -109,7 +116,6 @@ async function doCreate() {
     $("link").textContent = url;
     $("rlink").innerHTML = '<a href="' + recipe + '">terminal recipe</a>';
     $("copy").onclick = () => navigator.clipboard.writeText(url);
-    $("copycli").onclick = () => navigator.clipboard.writeText(terminalRecipe(id, key));
     $("create").classList.add("hide");
     $("result").classList.remove("hide");
     $("secret").value = "";
@@ -118,18 +124,6 @@ async function doCreate() {
   } finally {
     $("enc").disabled = false;
   }
-}
-
-function terminalRecipe(id, key) {
-  return "KEY='" + key + "' curl -s " + location.origin + "/s/" + id +
-    " | python3 -c 'import sys,os,base64,hmac,hashlib,subprocess\n" +
-    "def u(s): return base64.urlsafe_b64decode(s+\"=\"*(-len(s)%4))\n" +
-    "b=u(sys.stdin.read().strip()); iv,ct,tag=b[:16],b[16:-32],b[-32:]\n" +
-    "m=u(os.environ[\"KEY\"])\n" +
-    "ek=hmac.new(m,b\"burnbox/v1/enc\",hashlib.sha256).digest()\n" +
-    "mk=hmac.new(m,b\"burnbox/v1/mac\",hashlib.sha256).digest()\n" +
-    "assert hmac.compare_digest(tag,hmac.new(mk,iv+ct,hashlib.sha256).digest()),\"bad MAC\"\n" +
-    "sys.stdout.buffer.write(subprocess.run([\"openssl\",\"enc\",\"-aes-256-ctr\",\"-d\",\"-K\",ek.hex(),\"-iv\",iv.hex()],input=ct,capture_output=True,check=True).stdout)'";
 }
 
 async function doView(id, key) {
