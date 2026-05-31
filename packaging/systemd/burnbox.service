@@ -1,0 +1,30 @@
+# burnbox systemd user unit (for the Raspberry Pis / Linux hosts).
+#
+# Install:
+#   mkdir -p ~/.config/systemd/user
+#   cp burnbox.service ~/.config/systemd/user/burnbox.service
+#   # edit ExecStart path + listen port to taste
+#   systemctl --user daemon-reload
+#   systemctl --user enable --now burnbox
+#   loginctl enable-linger "$USER"   # survive logout / reboot
+#
+# burnbox is stateless (in-memory, burn-on-read), so there is no data
+# dir, no credentials, and no state to persist across restarts.
+
+[Unit]
+Description=burnbox — server-blind one-time secrets
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+ExecStart=%h/.local/bin/burnbox serve -listen 127.0.0.1:8087
+Restart=on-failure
+RestartSec=2s
+# Hardening: the process needs no filesystem write access at all.
+ProtectSystem=strict
+ProtectHome=read-only
+PrivateTmp=true
+NoNewPrivileges=true
+
+[Install]
+WantedBy=default.target

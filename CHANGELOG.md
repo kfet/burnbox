@@ -7,6 +7,11 @@ follow semantic versioning once it reaches 1.0.
 ## [Unreleased]
 
 ### Added
+- Deployment artefacts: `packaging/launchd/` macOS LaunchAgent template
+  and `packaging/systemd/burnbox.service` user unit (for the Pis), plus
+  a `deploy` skill documenting the test-then-prod flow behind Tailscale
+  Funnel. burnbox is stateless, so deploy is just ship-binary +
+  supervise + funnel — no data dir or credentials.
 - Initial implementation of burnbox: a server-blind, one-time secret
   sharing service.
 - Frozen **v1 crypto contract**: AES-256-CTR + HMAC-SHA256

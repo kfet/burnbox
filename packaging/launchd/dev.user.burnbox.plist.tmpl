@@ -1,0 +1,34 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<!--
+  burnbox macOS LaunchAgent template.
+
+  Substitute the placeholders, drop into ~/Library/LaunchAgents/, then:
+    launchctl bootstrap gui/$UID ~/Library/LaunchAgents/dev.__USER__.burnbox.plist
+    launchctl print     gui/$UID/dev.__USER__.burnbox | head
+
+  burnbox is stateless (secrets live in memory and are burned on read),
+  so there is no data dir, no credentials, and nothing to back up. A
+  restart simply drops any un-read secrets — which is the correct,
+  fail-safe behaviour.
+-->
+<plist version="1.0">
+<dict>
+  <key>Label</key><string>dev.__USER__.burnbox</string>
+  <key>ProgramArguments</key>
+  <array>
+    <string>/Users/__USER__/.local/bin/burnbox</string>
+    <string>serve</string>
+    <string>-listen</string>
+    <string>127.0.0.1:__PORT__</string>
+  </array>
+  <key>EnvironmentVariables</key>
+  <dict>
+    <key>PATH</key><string>/opt/homebrew/bin:/usr/local/bin:/usr/bin:/bin</string>
+  </dict>
+  <key>RunAtLoad</key><true/>
+  <key>KeepAlive</key><true/>
+  <key>StandardOutPath</key><string>/Users/__USER__/Library/Logs/burnbox.out.log</string>
+  <key>StandardErrorPath</key><string>/Users/__USER__/Library/Logs/burnbox.err.log</string>
+</dict>
+</plist>
