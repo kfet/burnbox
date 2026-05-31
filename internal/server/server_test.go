@@ -2,6 +2,8 @@ package server
 
 import (
 	"bytes"
+	"crypto/sha256"
+	"encoding/base64"
 	"encoding/json"
 	"io"
 	"net/http"
@@ -11,6 +13,7 @@ import (
 	"time"
 
 	"github.com/kfet/burnbox/internal/store"
+	"github.com/kfet/burnbox/internal/ui"
 )
 
 func newTestServer(t *testing.T, opts store.Options) (*httptest.Server, *store.Store) {
@@ -233,5 +236,27 @@ func TestPutBodyReadError(t *testing.T) {
 	}
 	if !strings.Contains(rec.Body.String(), "read failed") {
 		t.Fatalf("body = %q", rec.Body.String())
+	}
+}
+
+// TestCSPMatchesInlineBootstrap recomputes the sha256 of the inline
+// <script> in index.html and asserts the CSP pins exactly that hash, so
+// the bootstrap and the policy can never silently drift apart.
+func TestCSPMatchesInlineBootstrap(t *testing.T) {
+	html := string(ui.Index)
+	const open = "<script>"
+	i := strings.Index(html, open)
+	if i < 0 {
+		t.Fatal("no inline <script> in index.html")
+	}
+	j := strings.Index(html[i:], "</script>")
+	if j < 0 {
+		t.Fatal("unterminated inline <script>")
+	}
+	body := html[i+len(open) : i+j]
+	sum := sha256.Sum256([]byte(body))
+	want := "sha256-" + base64.StdEncoding.EncodeToString(sum[:])
+	if !strings.Contains(contentSecurityPolicy, want) {
+		t.Fatalf("CSP missing inline-script hash %q\nCSP: %s", want, contentSecurityPolicy)
 	}
 }

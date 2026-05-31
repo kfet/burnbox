@@ -3,6 +3,13 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
+<!-- Trailing-slash guard: when mounted under a stripped path prefix
+     (e.g. Tailscale /secret), the SPA must load with a trailing slash
+     so its relative assets resolve. The server can't see the prefix, so
+     fix it client-side. This exact text is pinned in the CSP via a
+     sha256 hash (see internal/server) — do not edit without updating it
+     (a test enforces the match). -->
+<script>if(location.pathname.slice(-1)!=='/')location.replace(location.pathname+'/'+location.search+location.hash)</script>
 <title>burnbox — one-time secret</title>
 <style>
   :root { --bg:#0f1115; --fg:#e6e6e6; --mut:#9aa4b2; --acc:#ff7a45; --card:#171a21; --bd:#262b35; }

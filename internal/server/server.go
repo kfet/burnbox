@@ -35,9 +35,13 @@ func New(st *store.Store) *Server {
 
 // contentSecurityPolicy locks the frontend down so a compromised page
 // can't exfiltrate the fragment key to a third party: scripts only from
-// same origin (no inline JS), network only to same origin. Inline styles
-// are allowed (they can't leak data the way scripts can).
-const contentSecurityPolicy = "default-src 'none'; script-src 'self'; " +
+// same origin plus one pinned inline bootstrap (the trailing-slash guard
+// in index.html, allowed via its sha256 hash — kept in sync by a test in
+// this package), network only to same origin. Inline styles are allowed
+// (they can't leak data the way scripts can).
+const indexBootstrapSHA256 = "sha256-yVHEDpEZv2elNgMs3OdNTaT9XGpsTOzCqDH3jfygL0o="
+
+const contentSecurityPolicy = "default-src 'none'; script-src 'self' '" + indexBootstrapSHA256 + "'; " +
 	"style-src 'unsafe-inline'; connect-src 'self'; img-src 'self'; " +
 	"base-uri 'none'; form-action 'none'; frame-ancestors 'none'"
 

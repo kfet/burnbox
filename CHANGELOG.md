@@ -6,6 +6,14 @@ follow semantic versioning once it reaches 1.0.
 
 ## [Unreleased]
 
+### Fixed
+- Trailing-slash robustness when mounted under a stripped path prefix:
+  opening the app without the trailing slash (e.g. `/secret`) made the
+  relative assets resolve one level too high (404, blank page). index.html
+  now carries a tiny inline bootstrap that redirects to the slash form;
+  it is allowed under the strict CSP via a pinned sha256 hash, which a
+  unit test keeps in sync with the script.
+
 ### Added
 - Path-relative frontend URLs so burnbox can be reverse-proxied under an
   arbitrary path prefix (e.g. Tailscale `serve --set-path=/secret`, which
