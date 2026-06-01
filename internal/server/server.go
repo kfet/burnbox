@@ -39,7 +39,7 @@ func New(st *store.Store) *Server {
 // in index.html, allowed via its sha256 hash — kept in sync by a test in
 // this package), network only to same origin. Inline styles are allowed
 // (they can't leak data the way scripts can).
-const indexBootstrapSHA256 = "sha256-yVHEDpEZv2elNgMs3OdNTaT9XGpsTOzCqDH3jfygL0o="
+const indexBootstrapSHA256 = "sha256-tdSBCzLum2QCktYTh8vg9+Mtoe4It3sD2+jK+K2WPpo="
 
 const contentSecurityPolicy = "default-src 'none'; script-src 'self' '" + indexBootstrapSHA256 + "'; " +
 	"style-src 'unsafe-inline'; connect-src 'self'; img-src 'self'; " +
