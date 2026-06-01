@@ -7,6 +7,9 @@
 /coverage.out
 /coverage.tmp.out
 
+# fir local state (skills live in ./skills; .fir/skills is a symlink)
+/.fir/
+
 # Editor / OS junk
 .DS_Store
 *.swp
