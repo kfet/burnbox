@@ -6,6 +6,14 @@ follow semantic versioning once it reaches 1.0.
 
 ## [Unreleased]
 
+## [0.1.3] - 2026-06-02
+
+### Added
+- Copy-command button on the terminal recipe page now confirms success: it
+  flashes "Copied ✓" (green) or a hint on failure.
+- CI workflows updated to run on Node 24 actions (`checkout@v6`,
+  `setup-go@v6`), clearing the Node 20 deprecation warnings.
+
 ## [0.1.2] - 2026-06-02
 
 ### Added

@@ -24,5 +24,24 @@
   var full = "KEY='" + key + "' curl -s " + new URL("../s/" + id, location.href).href +
     " | python3 -c '" + py + "'";
   cmd.textContent = full;
-  document.getElementById("copy").onclick = function () { navigator.clipboard.writeText(full); };
+
+  var copyBtn = document.getElementById("copy");
+  copyBtn.onclick = function () {
+    var flash = function (msg, ok) {
+      copyBtn.textContent = msg;
+      if (ok) copyBtn.className = "ok";
+      clearTimeout(copyBtn._t);
+      copyBtn._t = setTimeout(function () {
+        copyBtn.textContent = "Copy command";
+        copyBtn.className = "";
+      }, 1600);
+    };
+    if (navigator.clipboard && navigator.clipboard.writeText) {
+      navigator.clipboard.writeText(full)
+        .then(function () { flash("Copied \u2713", true); })
+        .catch(function () { flash("Press \u2318/Ctrl-C to copy", false); });
+    } else {
+      flash("Press \u2318/Ctrl-C to copy", false);
+    }
+  };
 })();
