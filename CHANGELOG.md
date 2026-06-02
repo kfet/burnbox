@@ -6,6 +6,15 @@ follow semantic versioning once it reaches 1.0.
 
 ## [Unreleased]
 
+## [0.1.1] - 2026-06-02
+
+### Added
+- `GET /version` endpoint reporting the running build version as JSON,
+  useful for deploy/health checks.
+- Frontend footer now shows the running version and links to the project
+  source (the former "about" link pointed at the page itself and did
+  nothing).
+
 ## [0.1.0] - 2026-06-01
 
 ### Added

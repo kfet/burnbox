@@ -20,7 +20,7 @@ func newTestServer(t *testing.T, opts store.Options) (*httptest.Server, *store.S
 	t.Helper()
 	st := store.New(opts)
 	t.Cleanup(st.Close)
-	ts := httptest.NewServer(New(st))
+	ts := httptest.NewServer(New(st, "v0.0.0-test"))
 	t.Cleanup(ts.Close)
 	return ts, st
 }
@@ -52,6 +52,22 @@ func TestHealth(t *testing.T) {
 	b, _ := io.ReadAll(resp.Body)
 	if resp.StatusCode != 200 || string(b) != "ok" {
 		t.Fatalf("health = %d %q", resp.StatusCode, b)
+	}
+}
+
+func TestVersion(t *testing.T) {
+	ts, _ := newTestServer(t, store.Options{})
+	resp, err := http.Get(ts.URL + "/version")
+	if err != nil {
+		t.Fatal(err)
+	}
+	defer resp.Body.Close()
+	var m map[string]string
+	if err := json.NewDecoder(resp.Body).Decode(&m); err != nil {
+		t.Fatalf("decode: %v", err)
+	}
+	if resp.StatusCode != 200 || m["version"] != "v0.0.0-test" {
+		t.Fatalf("version = %d %q", resp.StatusCode, m["version"])
 	}
 }
 
@@ -191,7 +207,7 @@ func TestPutStoreError(t *testing.T) {
 		return "", io.ErrUnexpectedEOF
 	}})
 	t.Cleanup(st.Close)
-	ts := httptest.NewServer(New(st))
+	ts := httptest.NewServer(New(st, "v0.0.0-test"))
 	t.Cleanup(ts.Close)
 	resp, m := put(t, ts.URL, "x", "")
 	if resp.StatusCode != 500 {
@@ -227,7 +243,7 @@ func (errReader) Read([]byte) (int, error) { return 0, io.ErrClosedPipe }
 func TestPutBodyReadError(t *testing.T) {
 	st := store.New(store.Options{})
 	t.Cleanup(st.Close)
-	srv := New(st)
+	srv := New(st, "v0.0.0-test")
 	req := httptest.NewRequest("POST", "/s", errReader{})
 	rec := httptest.NewRecorder()
 	srv.ServeHTTP(rec, req)

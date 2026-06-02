@@ -16,14 +16,17 @@ import (
 
 // Server holds the blob store and serves the HTTP API + frontend.
 type Server struct {
-	store *store.Store
-	mux   *http.ServeMux
+	store   *store.Store
+	version string
+	mux     *http.ServeMux
 }
 
-// New constructs a Server backed by st and registers all routes.
-func New(st *store.Store) *Server {
-	s := &Server{store: st, mux: http.NewServeMux()}
+// New constructs a Server backed by st and registers all routes. version
+// is reported by GET /version and surfaced in the frontend footer.
+func New(st *store.Store, version string) *Server {
+	s := &Server{store: st, version: version, mux: http.NewServeMux()}
 	s.mux.HandleFunc("GET /healthz", s.handleHealth)
+	s.mux.HandleFunc("GET /version", s.handleVersion)
 	s.mux.HandleFunc("POST /s", s.handlePut)
 	s.mux.HandleFunc("GET /s/{id}", s.handleGet)
 	s.mux.HandleFunc("GET /r/{id}", s.handleRecipe)
@@ -68,6 +71,13 @@ func writeJSON(w http.ResponseWriter, code int, v any) {
 func (s *Server) handleHealth(w http.ResponseWriter, _ *http.Request) {
 	w.Header().Set("Content-Type", "text/plain")
 	_, _ = io.WriteString(w, "ok")
+}
+
+// handleVersion reports the running build version as JSON. Consumed by
+// the frontend footer and useful for deploy/health checks.
+func (s *Server) handleVersion(w http.ResponseWriter, _ *http.Request) {
+	w.Header().Set("Cache-Control", "no-store")
+	writeJSON(w, http.StatusOK, map[string]string{"version": s.version})
 }
 
 // handlePut stores a posted ciphertext blob and returns its id.

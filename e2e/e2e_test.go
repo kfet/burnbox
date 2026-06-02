@@ -68,7 +68,7 @@ func TestE2E(t *testing.T) {
 
 	st := store.New(store.Options{})
 	defer st.Close()
-	ts := httptest.NewServer(server.New(st))
+	ts := httptest.NewServer(server.New(st, "v0.0.0-test"))
 	defer ts.Close()
 
 	const secret = "correct horse battery staple\nline two\twith tab"

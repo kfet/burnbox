@@ -151,7 +151,15 @@ async function doView(id, key) {
   }
 }
 
+function showVersion() {
+  fetch("version")
+    .then((r) => (r.ok ? r.json() : null))
+    .then((d) => { if (d && d.version) $("ver").textContent = " · " + d.version; })
+    .catch(() => {});
+}
+
 function init() {
+  showVersion();
   const h = location.hash.replace(/^#/, "");
   const dot = h.indexOf(".");
   if (dot > 0) {

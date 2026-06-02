@@ -82,7 +82,7 @@ func cmdServe(args []string, stdout, stderr io.Writer) int {
 
 	srv := &http.Server{
 		Addr:              *listen,
-		Handler:           server.New(st),
+		Handler:           server.New(st, burnbox.Version),
 		ReadHeaderTimeout: 10 * time.Second,
 	}
 
