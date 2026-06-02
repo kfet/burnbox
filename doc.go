@@ -18,7 +18,7 @@ package burnbox
 // release time. Kept as a var (not const) so release builds can override
 // it via -ldflags -X github.com/kfet/burnbox.Version=...
 var (
-	Version   = "0.1.1"
+	Version   = "0.1.2"
 	Commit    = "unknown" // git short SHA, set via -ldflags at release time
 	BuildDate = "unknown" // ISO-8601 UTC, set via -ldflags at release time
 )

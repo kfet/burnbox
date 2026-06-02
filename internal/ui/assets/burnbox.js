@@ -125,7 +125,25 @@ async function doCreate() {
     const recipe = base + "r/" + id + "#" + key;
     $("link").textContent = url;
     $("rlink").innerHTML = '<a href="' + recipe + '">terminal recipe</a>';
-    $("copy").onclick = () => navigator.clipboard.writeText(url);
+    $("copy").onclick = () => {
+      const btn = $("copy");
+      const flash = (msg, ok) => {
+        btn.textContent = msg;
+        btn.classList.toggle("ok", ok);
+        clearTimeout(btn._t);
+        btn._t = setTimeout(() => {
+          btn.textContent = "Copy link";
+          btn.classList.remove("ok");
+        }, 1600);
+      };
+      if (navigator.clipboard && navigator.clipboard.writeText) {
+        navigator.clipboard.writeText(url)
+          .then(() => flash("Copied \u2713", true))
+          .catch(() => flash("Press \u2318/Ctrl-C to copy", false));
+      } else {
+        flash("Press \u2318/Ctrl-C to copy", false);
+      }
+    };
     $("create").classList.add("hide");
     $("result").classList.remove("hide");
     $("secret").value = "";

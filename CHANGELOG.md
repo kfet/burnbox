@@ -6,6 +6,21 @@ follow semantic versioning once it reaches 1.0.
 
 ## [Unreleased]
 
+## [0.1.2] - 2026-06-02
+
+### Added
+- Copy-link button now confirms the result: it shows "Copied ✓" (green)
+  on success, or a "Press ⌘/Ctrl-C to copy" hint if the clipboard API is
+  unavailable, instead of silently doing nothing.
+- Automated release pipeline (`.github/workflows/release.yml`): on a
+  `v*` tag, build per-arch binary tarballs, publish them as release
+  assets, and push a rendered Homebrew formula to
+  `github.com/kfet/homebrew-tap`. Install with
+  `brew install kfet/tap/burnbox`.
+- `make release-local` target, `packaging/homebrew/burnbox.rb.tmpl`, and
+  `scripts/render-formula.sh` supporting the pipeline and local release
+  verification.
+
 ## [0.1.1] - 2026-06-02
 
 ### Added
