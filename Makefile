@@ -1,4 +1,4 @@
-.PHONY: all build build-matrix build-linux-amd64 build-linux-arm64 build-darwin-amd64 build-darwin-arm64 fmt vet lint-frontend run-tests open_coverage clean e2e _all
+.PHONY: all build build-matrix build-linux-amd64 build-linux-arm64 build-darwin-amd64 build-darwin-arm64 fmt vet lint-frontend run-tests open_coverage clean e2e release-local _all
 
 # Version metadata baked into the binary at link time. Override on the
 # command line for reproducible release builds: `make build VERSION=v0.1.1`.
@@ -52,6 +52,27 @@ build-darwin-amd64:
 	$(call RUN,build darwin/amd64,CGO_ENABLED=0 GOOS=darwin GOARCH=amd64 go build -trimpath -ldflags='$(LDFLAGS)' -o /dev/null ./cmd/burnbox)
 build-darwin-arm64:
 	$(call RUN,build darwin/arm64,CGO_ENABLED=0 GOOS=darwin GOARCH=arm64 go build -trimpath -ldflags='$(LDFLAGS)' -o /dev/null ./cmd/burnbox)
+
+# Build real, shippable per-arch binary tarballs (darwin/linux ×
+# amd64/arm64) into dist/, plus dist/checksums.txt. This is the exact
+# shape the CI release workflow uploads as release assets and feeds to
+# the Homebrew formula renderer — run it locally to verify a release
+# before tagging. Output is gitignored. Pass VERSION to stamp the build:
+# `make release-local VERSION=0.1.2`.
+release-local:
+	@rm -rf dist && mkdir -p dist
+	@for t in darwin/arm64 darwin/amd64 linux/arm64 linux/amd64; do \
+		os=$${t%/*}; arch=$${t#*/}; name="burnbox-$(VERSION)-$$os-$$arch"; \
+		echo "→ $$name"; \
+		CGO_ENABLED=0 GOOS=$$os GOARCH=$$arch go build -trimpath \
+			-ldflags='$(LDFLAGS)' -o dist/$$name/burnbox ./cmd/burnbox || exit $$?; \
+		cp LICENSE README.md dist/$$name/ 2>/dev/null || true; \
+		tar -C dist -czf dist/$$name.tar.gz $$name; \
+		rm -rf dist/$$name; \
+	done
+	@cd dist && shasum -a 256 *.tar.gz > checksums.txt
+	@echo "✓ release artefacts in dist/"
+	@ls -l dist/
 
 fmt:
 	$(call RUN,gofmt,gofmt -l . | (! grep .))
