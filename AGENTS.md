@@ -165,21 +165,6 @@ VERSION CHANGELOG.md README.md Makefile .covignore .github/workflows/
 - Keep README + this file in sync when the crypto contract or layout
   changes.
 
-## Advisor cadence (mandatory)
-
-Use `aside` with `escalate=true` (aside-advisor skill) at minimum:
-
-1. **Before freezing the crypto contract** — confirm EtM construction,
-   subkey derivation, IV handling, and that WebCrypto + openssl + python
-   can all reproduce it. (This is the self-handoff review.)
-2. **Before the store concurrency model** — confirm the atomic-burn
-   semantics under concurrent reads.
-3. **Before declaring v0.1 done** — sanity-check the whole shape and the
-   threat-model writeup.
-
-Plus the standard triggers: stuck, changing approach, about to call it
-done.
-
 ## E2E harness (continuous verification)
 
 `make e2e` must, in one process:
@@ -195,13 +180,3 @@ done.
 
 Fast (sub-30s). Skips the shell step with a clear log line if `python3`
 or `openssl` is unavailable, but CI has both.
-
-## Reference repos
-
-For repo conventions (Makefile, CI, CHANGELOG, doc.go, release flow):
-
-- `github.com/kfet/harborrs` — closest scaffolding (this brief mirrors it)
-- `github.com/kfet/pinexec` — minimal stdlib-only build/test setup
-- `github.com/kfet/covgate` — drives the 100% coverage gate
-
-Clone into `/tmp` for reference; do not vendor.

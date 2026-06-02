@@ -33,6 +33,38 @@ open http://localhost:8080
 Type a secret → get a link like `http://host/#<id>.<key>`. Open it once;
 it's gone.
 
+## CLI
+
+```
+burnbox serve [flags]    # run the server
+burnbox version          # print version, commit, build date
+```
+
+`serve` flags:
+
+| Flag         | Default   | Meaning                                  |
+|--------------|-----------|------------------------------------------|
+| `-listen`    | `:8080`   | address to listen on                     |
+| `-max-size`  | `262144`  | maximum ciphertext blob size, in bytes (256 KiB) |
+| `-max-ttl`   | `168h`    | ceiling for requested TTLs (7 days)      |
+| `-min-ttl`   | `1h`      | floor / default TTL                      |
+
+A blob's lifetime is set per-secret via `POST /s?ttl=<seconds>`, clamped
+into `[min-ttl, max-ttl]`; an absent or invalid `ttl` defaults to
+`min-ttl`. The server is stateless and holds everything in memory — a
+restart drops any un-read secrets (acceptable by design).
+
+### HTTP API
+
+| Method & path  | Behaviour                                                        |
+|----------------|------------------------------------------------------------------|
+| `POST /s`      | store an opaque ciphertext blob (body, ≤ `max-size`); returns `{"id":"…"}`. Optional `?ttl=<seconds>`. |
+| `GET /s/{id}`  | atomically return the blob **and burn it**; `404` JSON if absent/expired/already viewed. `Content-Type: application/octet-stream`. |
+| `GET /`        | the static single-page app (encrypt + in-browser decrypt).       |
+| `GET /r/{id}`  | human page rendering the copy-paste terminal recipe for that id. |
+| `GET /healthz` | `200 ok`.                                                        |
+
+
 ## Decrypting in a terminal (zero install)
 
 Every link has a companion recipe page at `/r/<id>#<key>` that prints a
