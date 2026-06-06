@@ -6,6 +6,8 @@ follow semantic versioning once it reaches 1.0.
 
 ## [Unreleased]
 
+## [0.1.4] - 2026-06-06
+
 ### Fixed
 - Terminal recipe command was broken: it used the `KEY='…' curl … | python3`
   env-prefix form, where the assignment scopes only to `curl` and never
