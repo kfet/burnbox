@@ -13,16 +13,16 @@
     return;
   }
   var py =
-    "import sys,os,base64,hmac,hashlib,subprocess\n" +
+    "import sys,base64,hmac,hashlib,subprocess\n" +
     "def u(s): return base64.urlsafe_b64decode(s+\"=\"*(-len(s)%4))\n" +
     "b=u(sys.stdin.read().strip()); iv,ct,tag=b[:16],b[16:-32],b[-32:]\n" +
-    "m=u(os.environ[\"KEY\"])\n" +
+    "m=u(sys.argv[1])\n" +
     "ek=hmac.new(m,b\"burnbox/v1/enc\",hashlib.sha256).digest()\n" +
     "mk=hmac.new(m,b\"burnbox/v1/mac\",hashlib.sha256).digest()\n" +
     "assert hmac.compare_digest(tag,hmac.new(mk,iv+ct,hashlib.sha256).digest()),\"bad MAC\"\n" +
     "sys.stdout.buffer.write(subprocess.run([\"openssl\",\"enc\",\"-aes-256-ctr\",\"-d\",\"-K\",ek.hex(),\"-iv\",iv.hex()],input=ct,capture_output=True,check=True).stdout)";
-  var full = "KEY='" + key + "' curl -s " + new URL("../s/" + id, location.href).href +
-    " | python3 -c '" + py + "'";
+  var full = "curl -s " + new URL("../s/" + id, location.href).href +
+    " | python3 -c '" + py + "' '" + key + "'";
   cmd.textContent = full;
 
   var copyBtn = document.getElementById("copy");

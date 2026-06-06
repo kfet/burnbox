@@ -6,6 +6,17 @@ follow semantic versioning once it reaches 1.0.
 
 ## [Unreleased]
 
+### Fixed
+- Terminal recipe command was broken: it used the `KEY='…' curl … | python3`
+  env-prefix form, where the assignment scopes only to `curl` and never
+  reaches the piped `python3`, so decryption failed with `bad MAC`. The
+  recipe now passes the key as a python `argv` (`… | python3 -c '…' '<key>'`),
+  which is robust regardless of shell and drops the `os` import.
+- The e2e test masked this: it injected `KEY` into the whole shell
+  environment rather than running the real generated form. It now executes
+  the exact pipeline with the key as argv and `KEY` deliberately absent from
+  the environment, so this class of regression fails the test.
+
 ## [0.1.3] - 2026-06-02
 
 ### Added
