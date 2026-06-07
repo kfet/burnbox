@@ -6,6 +6,8 @@ follow semantic versioning once it reaches 1.0.
 
 ## [Unreleased]
 
+## [0.1.6] - 2026-06-07
+
 ### Added
 - iOS home-screen icon: a 180×180 `apple-touch-icon.png` (full-bleed
   square — iOS rounds corners itself) embedded via `embed.FS` and served
