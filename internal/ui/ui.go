@@ -27,3 +27,8 @@ var Recipe []byte
 //
 //go:embed assets/recipe.js
 var RecipeScript []byte
+
+// Favicon is the site icon (a flame), served at "/favicon.svg".
+//
+//go:embed assets/favicon.svg
+var Favicon []byte

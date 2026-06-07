@@ -6,6 +6,12 @@ follow semantic versioning once it reaches 1.0.
 
 ## [Unreleased]
 
+### Added
+- Built-in SVG favicon (a flame in the brand accent) embedded via
+  `embed.FS` and served at `/favicon.svg`; linked from the index and
+  recipe pages with prefix-safe relative hrefs. Permitted by the
+  existing `img-src 'self'` CSP — no policy change needed.
+
 ## [0.1.4] - 2026-06-06
 
 ### Fixed

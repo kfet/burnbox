@@ -162,6 +162,7 @@ func TestPages(t *testing.T) {
 		{"/burnbox.js", "text/javascript; charset=utf-8", "AES-CTR"},
 		{"/recipe.js", "text/javascript; charset=utf-8", "openssl"},
 		{"/r/someid", "text/html; charset=utf-8", "recipe"},
+		{"/favicon.svg", "image/svg+xml", "<svg"},
 	}
 	for _, c := range cases {
 		resp, err := http.Get(ts.URL + c.path)
