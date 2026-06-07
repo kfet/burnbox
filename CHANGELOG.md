@@ -6,6 +6,8 @@ follow semantic versioning once it reaches 1.0.
 
 ## [Unreleased]
 
+## [0.1.5] - 2026-06-06
+
 ### Added
 - Built-in SVG favicon (a flame in the brand accent) embedded via
   `embed.FS` and served at `/favicon.svg`; linked from the index and
