@@ -163,6 +163,7 @@ func TestPages(t *testing.T) {
 		{"/recipe.js", "text/javascript; charset=utf-8", "openssl"},
 		{"/r/someid", "text/html; charset=utf-8", "recipe"},
 		{"/favicon.svg", "image/svg+xml", "<svg"},
+		{"/apple-touch-icon.png", "image/png", "PNG"},
 	}
 	for _, c := range cases {
 		resp, err := http.Get(ts.URL + c.path)

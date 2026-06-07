@@ -32,3 +32,15 @@ var RecipeScript []byte
 //
 //go:embed assets/favicon.svg
 var Favicon []byte
+
+// AppleTouchIcon is the iOS home-screen icon, served at
+// "/apple-touch-icon.png". iOS "Add to Home Screen" requires a raster
+// PNG (it ignores SVG favicons) and rounds the corners itself, so the
+// source is a full-bleed square. Regenerate from the committed source:
+//
+//	rsvg-convert -w 180 -h 180 \
+//	  internal/ui/assets/apple-touch-icon.src.svg \
+//	  -o internal/ui/assets/apple-touch-icon.png
+//
+//go:embed assets/apple-touch-icon.png
+var AppleTouchIcon []byte

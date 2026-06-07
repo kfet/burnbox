@@ -6,6 +6,15 @@ follow semantic versioning once it reaches 1.0.
 
 ## [Unreleased]
 
+### Added
+- iOS home-screen icon: a 180×180 `apple-touch-icon.png` (full-bleed
+  square — iOS rounds corners itself) embedded via `embed.FS` and served
+  at `/apple-touch-icon.png`, linked from the index and recipe pages
+  along with an `apple-mobile-web-app-title` of "burnbox". "Add to Home
+  Screen" on iOS now picks up the flame automatically. The PNG is
+  regenerated from the committed `apple-touch-icon.src.svg` via
+  `rsvg-convert` (see `internal/ui/ui.go`).
+
 ## [0.1.5] - 2026-06-06
 
 ### Added

@@ -33,6 +33,7 @@ func New(st *store.Store, version string) *Server {
 	s.mux.HandleFunc("GET /burnbox.js", s.handleScript)
 	s.mux.HandleFunc("GET /recipe.js", s.handleRecipeScript)
 	s.mux.HandleFunc("GET /favicon.svg", s.handleFavicon)
+	s.mux.HandleFunc("GET /apple-touch-icon.png", s.handleAppleTouchIcon)
 	s.mux.HandleFunc("GET /", s.handleIndex)
 	return s
 }
@@ -139,6 +140,7 @@ const (
 	ctHTML = "text/html; charset=utf-8"
 	ctJS   = "text/javascript; charset=utf-8"
 	ctSVG  = "image/svg+xml"
+	ctPNG  = "image/png"
 )
 
 func (s *Server) handleIndex(w http.ResponseWriter, r *http.Request) {
@@ -165,6 +167,10 @@ func (s *Server) handleRecipeScript(w http.ResponseWriter, _ *http.Request) {
 
 func (s *Server) handleFavicon(w http.ResponseWriter, _ *http.Request) {
 	serveAsset(w, ctSVG, ui.Favicon)
+}
+
+func (s *Server) handleAppleTouchIcon(w http.ResponseWriter, _ *http.Request) {
+	serveAsset(w, ctPNG, ui.AppleTouchIcon)
 }
 
 // serveAsset writes an embedded static asset with security headers and a
