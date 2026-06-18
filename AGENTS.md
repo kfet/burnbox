@@ -30,6 +30,38 @@ Python's `hmac`/`hashlib` stdlib — so the recipient one-liner needs no
 third-party crypto library. Every "fancy" competitor picked GCM and
 thereby locked terminal users out.
 
+## NON-NEGOTIABLE product invariants (do not propose weakening these)
+
+These are the *reason burnbox exists*. Any change, refactor, or
+"improvement" that erodes one of them is wrong by definition — push
+back on the request, do not implement it.
+
+1. **Burn-after-reading is THE product.** `GET /s/{id}` MUST atomically
+   return the blob **and destroy it** on the *first* successful read
+   (`store.GetDel`). The secret is gone forever after one fetch. Do NOT:
+   - make reads non-destructive,
+   - gate the burn behind an opt-in (header / method / query param /
+     confirmation page) so "passive" fetches don't burn,
+   - add a "preview" / "peek" path that returns the blob without burning,
+   - defer or delay the burn.
+   If a link unfurler / chat preview / scanner fetches the URL, it
+   **burns the secret — that is correct and intended behaviour**, not a
+   bug. The mitigation is operational (don't paste raw `/s/` links into
+   surfaces that auto-fetch; share the `/r/{id}#key` recipe or the copied
+   command instead), never a code change that softens the burn.
+
+2. **Server stays blind.** No encryption/decryption code in the Go
+   server, ever. It stores and returns opaque ciphertext only. The key
+   lives in the URL fragment and is never transmitted.
+
+3. **Zero-install recipient.** Decrypt with only `curl`, stdlib
+   `python3`, and `openssl`. No new client-side dependency may sneak in.
+
+Rationale for #1, recorded so it is never re-litigated: a one-time
+secret that can be read twice is not a one-time secret. The entire value
+over a pastebin is that exposure is bounded to exactly one read. "Make it
+survive being previewed/unfurled" defeats the whole purpose.
+
 ## Scope (what's in v0.1)
 
 - **Single binary**, subcommands: `serve`, `version`.
