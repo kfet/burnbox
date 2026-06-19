@@ -6,6 +6,15 @@ follow semantic versioning once it reaches 1.0.
 
 ## [Unreleased]
 
+## [0.1.7] - 2026-06-18
+
+### Fixed
+- `GET /s/{id}` now responds with `Content-Type: text/plain; charset=utf-8`
+  instead of `application/octet-stream`. The stored blob is base64url ASCII
+  text, so `text/plain` is the accurate type; link-aware surfaces (chat
+  apps, previews) can now classify it correctly instead of treating it as
+  an unknown binary. Burn-after-read semantics are unchanged.
+
 ## [0.1.6] - 2026-06-07
 
 ### Added
