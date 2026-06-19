@@ -70,7 +70,7 @@ survive being previewed/unfurled" defeats the whole purpose.
     JSON `{"id": "..."}`. Optional `?ttl=` (seconds, clamped).
   - `GET /s/{id}` — atomically returns the blob **and deletes it**
     (burn). 404 (JSON `{"error":"not found or already viewed"}`) if
-    absent/expired/already burned. `Content-Type: application/octet-stream`.
+    absent/expired/already burned. `Content-Type: text/plain; charset=utf-8`.
   - `GET /` — the static single-page app (encrypt + in-browser decrypt).
   - `GET /r/{id}` — a human page that prints the copy-paste terminal
     recipient recipe (curl|python3|openssl) for that id, with the
@@ -120,8 +120,9 @@ Changing it is a breaking change and a version bump of the `v1` tag.
 > diverge silently. Versioning is carried by the KDF labels
 > (`burnbox/v1/...`), so no version byte is stored on the wire; a future
 > `v2` simply changes the labels and old keys can't validate new blobs.
-> The server returns the raw blob as `application/octet-stream` (never
-> JSON-wrapped) so the recipient pipe stays a clean `curl | python3`.
+> The server returns the raw blob as `text/plain; charset=utf-8` (the
+> blob is base64url ASCII, never JSON-wrapped) so the recipient pipe stays
+> a clean `curl | python3`.
 
 ### Reference recipient one-liner (must keep working)
 

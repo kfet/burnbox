@@ -82,7 +82,7 @@ func TestPutGetBurn(t *testing.T) {
 		t.Fatal("no id returned")
 	}
 
-	// First GET returns the blob as octet-stream and burns it.
+	// First GET returns the blob as text/plain and burns it.
 	g, err := http.Get(ts.URL + "/s/" + id)
 	if err != nil {
 		t.Fatal(err)
@@ -92,7 +92,7 @@ func TestPutGetBurn(t *testing.T) {
 	if g.StatusCode != 200 {
 		t.Fatalf("GET status %d", g.StatusCode)
 	}
-	if ct := g.Header.Get("Content-Type"); ct != "application/octet-stream" {
+	if ct := g.Header.Get("Content-Type"); ct != "text/plain; charset=utf-8" {
 		t.Fatalf("content-type %q", ct)
 	}
 	if string(body) != "deadbeefblob" {

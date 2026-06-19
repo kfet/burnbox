@@ -131,7 +131,7 @@ func (s *Server) handleGet(w http.ResponseWriter, r *http.Request) {
 		writeJSON(w, http.StatusNotFound, map[string]string{"error": "not found or already viewed"})
 		return
 	}
-	w.Header().Set("Content-Type", "application/octet-stream")
+	w.Header().Set("Content-Type", "text/plain; charset=utf-8")
 	w.Header().Set("Cache-Control", "no-store")
 	_, _ = w.Write(blob)
 }

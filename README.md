@@ -59,7 +59,7 @@ restart drops any un-read secrets (acceptable by design).
 | Method & path  | Behaviour                                                        |
 |----------------|------------------------------------------------------------------|
 | `POST /s`      | store an opaque ciphertext blob (body, ≤ `max-size`); returns `{"id":"…"}`. Optional `?ttl=<seconds>`. |
-| `GET /s/{id}`  | atomically return the blob **and burn it**; `404` JSON if absent/expired/already viewed. `Content-Type: application/octet-stream`. |
+| `GET /s/{id}`  | atomically return the blob **and burn it**; `404` JSON if absent/expired/already viewed. `Content-Type: text/plain; charset=utf-8`. |
 | `GET /`        | the static single-page app (encrypt + in-browser decrypt).       |
 | `GET /r/{id}`  | human page rendering the copy-paste terminal recipe for that id. |
 | `GET /healthz` | `200 ok`.                                                        |
