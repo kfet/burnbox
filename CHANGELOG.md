@@ -6,6 +6,18 @@ follow semantic versioning once it reaches 1.0.
 
 ## [Unreleased]
 
+## [0.1.8] - 2026-07-02
+
+### Added
+- Terminal recipe page now links to an **AI-agent variant** at
+  `/r/{id}?ai#key`. It renders the same `curl | python3 | openssl`
+  decrypt (wrapped in `( umask 077; … )`) prefixed with `#` prompt
+  comments instructing the agent: do not print/echo/`cat` the secret (it
+  can land in logs/transcripts), do not web-fetch or "preview" the URL
+  (it burns on the first read), and pipe the output to a temporary file
+  it deletes when done. Purely client-side (the key stays in the URL
+  fragment); the server stays blind.
+
 ## [0.1.7] - 2026-06-18
 
 ### Fixed

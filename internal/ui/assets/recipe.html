@@ -27,8 +27,8 @@
 </head>
 <body>
 <main>
-  <h1><span class="b">burn</span>box — terminal recipe</h1>
-  <p class="muted">Decrypt this one-time secret on a bare macOS / Linux box. Needs only
+  <h1 id="title"><span class="b">burn</span>box — terminal recipe</h1>
+  <p class="muted" id="intro">Decrypt this one-time secret on a bare macOS / Linux box. Needs only
      <code>curl</code>, <code>python3</code>, and <code>openssl</code> — nothing to install.
      Running it <strong>burns</strong> the secret. The key below comes from this page's URL
      fragment and is never sent to the server.</p>
@@ -37,6 +37,7 @@
     <button id="copy">Copy command</button>
     <p id="err" class="err"></p>
   </div>
+  <p class="muted" id="ailink"></p>
   <p class="muted"><a href="../">← create a new secret</a></p>
 </main>
 <script src="../recipe.js"></script>
