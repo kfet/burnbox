@@ -169,7 +169,7 @@ browsers do not send it.
   `crypto/aes` in `internal/server` or `internal/store`, stop — you
   have broken the design. (Crypto *is* allowed in `e2e/` and tests, to
   verify the contract.)
-- **Go 1.22+.**
+- **Go 1.24+.**
 - **No global state.** Constructor returns `*Server`; handlers are
   methods on it. No `init()` registries.
 - **Tests hit real HTTP** via `httptest.NewServer`. No mocking the

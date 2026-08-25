@@ -123,7 +123,7 @@ make all     # build + cross-compile + fmt + vet + frontend lint +
 make e2e     # just the end-to-end (real curl|python3|openssl round-trip)
 ```
 
-Stdlib-only server, zero third-party Go dependencies. Go 1.22+.
+Stdlib-only server, zero third-party Go dependencies. Go 1.24+.
 
 ## License
 
