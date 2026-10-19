@@ -6,6 +6,8 @@ follow semantic versioning once it reaches 1.0.
 
 ## [Unreleased]
 
+## [0.1.10] - 2026-10-19
+
 ### Fixed
 - **Recipe MAC check survives `python3 -O`.** The HMAC verification was an
   `assert`, which `-O` strips — a tampered blob would then decrypt to
