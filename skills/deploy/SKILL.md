@@ -105,7 +105,7 @@ curl -sI http://127.0.0.1:8089/ | grep -i 'content-security\|referrer'
 
 Full crypto round-trip + burn + auto-restart — see the verification
 script pattern in the repo's localhost test (encrypt with the v1
-contract, `POST /s`, decrypt via `curl | python3 | openssl`, assert the
+contract, `POST /s`, decrypt via `curl | python3`, assert the
 second read is 404, `kill -9` the pid and confirm the supervisor
 respawns a healthy process).
 

@@ -13,14 +13,38 @@
     return;
   }
   var py =
-    "import sys,base64,hmac,hashlib,subprocess\n" +
+    "import sys,base64,hmac,hashlib\n" +
     "def u(s): return base64.urlsafe_b64decode(s+\"=\"*(-len(s)%4))\n" +
     "b=u(sys.stdin.read().strip()); iv,ct,tag=b[:16],b[16:-32],b[-32:]\n" +
     "m=u(sys.argv[1])\n" +
     "ek=hmac.new(m,b\"burnbox/v1/enc\",hashlib.sha256).digest()\n" +
     "mk=hmac.new(m,b\"burnbox/v1/mac\",hashlib.sha256).digest()\n" +
     "assert hmac.compare_digest(tag,hmac.new(mk,iv+ct,hashlib.sha256).digest()),\"bad MAC\"\n" +
-    "sys.stdout.buffer.write(subprocess.run([\"openssl\",\"enc\",\"-aes-256-ctr\",\"-d\",\"-K\",ek.hex(),\"-iv\",iv.hex()],input=ct,capture_output=True,check=True).stdout)";
+    "X=lambda a:(a<<1^(27 if a&128 else 0))&255\n" +
+    "S=[99]*256;p=q=1\n" +
+    "while 1:\n" +
+    " p=p^X(p);q^=q<<1;q^=q<<2;q^=q<<4;q&=255;q^=9 if q&128 else 0\n" +
+    " S[p]=99^q^(q<<1|q>>7)&255^(q<<2|q>>6)&255^(q<<3|q>>5)&255^(q<<4|q>>4)&255\n" +
+    " if p==1: break\n" +
+    "w=[list(ek[i:i+4]) for i in range(0,32,4)];r=1\n" +
+    "for i in range(8,60):\n" +
+    " t=w[-1]\n" +
+    " if i%8==0: t=[S[x] for x in t[1:]+t[:1]];t[0]^=r;r=X(r)\n" +
+    " elif i%8==4: t=[S[x] for x in t]\n" +
+    " w.append([x^y for x,y in zip(w[i-8],t)])\n" +
+    "K=[sum(w[j:j+4],[]) for j in range(0,60,4)]\n" +
+    "def M(a):\n" +
+    " t=a[0]^a[1]^a[2]^a[3];return [a[i]^t^X(a[i]^a[(i+1)%4]) for i in range(4)]\n" +
+    "def E(s):\n" +
+    " s=[x^y for x,y in zip(s,K[0])]\n" +
+    " for r in range(1,15):\n" +
+    "  s=[S[s[(i+4*i)%16]] for i in range(16)]\n" +
+    "  if r<14: s=M(s[0:4])+M(s[4:8])+M(s[8:12])+M(s[12:16])\n" +
+    "  s=[x^y for x,y in zip(s,K[r])]\n" +
+    " return s\n" +
+    "n=int.from_bytes(iv,\"big\");o=bytearray()\n" +
+    "for i in range(0,len(ct),16): o+=bytes(x^y for x,y in zip(ct[i:i+16],E(((n+i//16)%2**128).to_bytes(16,\"big\"))))\n" +
+    "sys.stdout.buffer.write(bytes(o))";
   var full = "curl -s " + new URL("../s/" + id, location.href).href +
     " | python3 -c '" + py + "' '" + key + "'";
 

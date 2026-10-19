@@ -1,6 +1,6 @@
 // Package e2e holds burnbox's end-to-end smoke test. It proves the core
 // promise: a blob produced by the frozen v1 client crypto can be
-// decrypted on a bare box using only curl + python3 (stdlib) + openssl,
+// decrypted on a bare box using only curl + python3 (stdlib) only,
 // and that reading burns the secret.
 //
 // Run via `make e2e` (sets E2E=1). Skipped otherwise.
@@ -109,29 +109,23 @@ func TestE2E(t *testing.T) {
 }
 
 // decryptViaShell runs the exact bare-OS recipient pipeline, byte-for-byte
-// the form the recipe page generates:
+// the form the recipe page generates (the Python is
+// extracted from recipe.js itself, so there is a single source of truth):
 //
-//	curl -s URL | python3 -c '<stdlib hmac verify> | openssl aes-256-ctr' KEY
+//	curl -s URL | python3 -c '<stdlib hmac verify + pure-Python AES-256-CTR>' KEY
 //
 // The key is passed as a python argv — NOT via the environment — so this
 // test fails if anyone reintroduces an env-var dependency (e.g. the old
 // `KEY=... curl ... | python3` form, where KEY never reached python).
-// It skips (not fails) if curl/python3/openssl are unavailable.
+// It skips (not fails) if curl/python3 are unavailable.
 func decryptViaShell(t *testing.T, url, key string) string {
 	t.Helper()
-	for _, bin := range []string{"bash", "curl", "python3", "openssl"} {
+	for _, bin := range []string{"bash", "curl", "python3"} {
 		if _, err := exec.LookPath(bin); err != nil {
 			t.Skipf("%s not on PATH — skipping bare-OS recipient check", bin)
 		}
 	}
-	const py = `import sys,base64,hmac,hashlib,subprocess
-def u(s): return base64.urlsafe_b64decode(s+"="*(-len(s)%4))
-b=u(sys.stdin.read().strip()); iv,ct,tag=b[:16],b[16:-32],b[-32:]
-m=u(sys.argv[1])
-ek=hmac.new(m,b"burnbox/v1/enc",hashlib.sha256).digest()
-mk=hmac.new(m,b"burnbox/v1/mac",hashlib.sha256).digest()
-assert hmac.compare_digest(tag,hmac.new(mk,iv+ct,hashlib.sha256).digest()),"bad MAC"
-sys.stdout.buffer.write(subprocess.run(["openssl","enc","-aes-256-ctr","-d","-K",ek.hex(),"-iv",iv.hex()],input=ct,capture_output=True,check=True).stdout)`
+	py := recipePy(t)
 
 	// Key as argv ($3), and deliberately NOT in the environment, to mirror
 	// the real recipe and guard against the env-prefix footgun.

@@ -103,7 +103,7 @@ open_coverage:
 
 # End-to-end smoke: starts the server, does the v1 client crypto in Go,
 # POSTs the blob, then decrypts via the REAL bare-OS recipient one-liner
-# (python3 + openssl) and asserts the round-trip + burn.
+# (curl + python3 stdlib) and asserts the round-trip + burn.
 e2e:
 	$(call RUN,e2e smoke,E2E=1 go test -count=1 -timeout=60s ./e2e/...)
 

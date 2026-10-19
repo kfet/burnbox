@@ -22,7 +22,7 @@ jobs:
           # burnbox has no runtime deps and therefore no go.sum.
           cache: false
       - run: go version
-      # python3 + openssl are preinstalled on ubuntu-latest, so the e2e
+      # python3 is preinstalled on ubuntu-latest, so the e2e
       # bare-OS recipient round-trip runs for real in CI.
       - run: make all
         env:

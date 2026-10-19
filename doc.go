@@ -3,7 +3,7 @@
 //
 // The server is a blind blob store: it holds opaque ciphertext and
 // nothing else. All encryption happens client-side (browser WebCrypto
-// or a bare-OS curl|python3|openssl one-liner); the key travels only in
+// or a bare-OS curl|python3 one-liner); the key travels only in
 // the URL fragment and never reaches the server. See AGENTS.md for the
 // full design brief and the frozen crypto contract.
 //

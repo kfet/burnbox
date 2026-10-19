@@ -160,7 +160,7 @@ func TestPages(t *testing.T) {
 	}{
 		{"/", "text/html; charset=utf-8", "burn"},
 		{"/burnbox.js", "text/javascript; charset=utf-8", "AES-CTR"},
-		{"/recipe.js", "text/javascript; charset=utf-8", "openssl"},
+		{"/recipe.js", "text/javascript; charset=utf-8", "burnbox/v1/enc"},
 		{"/r/someid", "text/html; charset=utf-8", "recipe"},
 		{"/favicon.svg", "image/svg+xml", "<svg"},
 		{"/apple-touch-icon.png", "image/png", "PNG"},

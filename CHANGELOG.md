@@ -6,6 +6,17 @@ follow semantic versioning once it reaches 1.0.
 
 ## [Unreleased]
 
+### Changed
+- **Recipient recipe no longer needs `openssl`.** The terminal decrypt is
+  now `curl` + `python3` stdlib only: the `openssl enc -aes-256-ctr`
+  subprocess is replaced by a compact pure-Python AES-256 + CTR loop
+  (full 128-bit big-endian counter, identical output). Runs on stock
+  macOS `/usr/bin/python3` (3.9) and Python ≥ 3.8. Wire format and server
+  are unchanged; old links keep working.
+- Tests now extract the recipe Python from `recipe.js` and verify it
+  against Go-encrypted payloads (empty, non-block-aligned, >256-block
+  counter carry, 2^128 wrap) and the FIPS-197 AES-256 known-answer vector.
+
 ## [0.1.8] - 2026-07-02
 
 ### Added
