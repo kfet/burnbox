@@ -6,6 +6,12 @@ follow semantic versioning once it reaches 1.0.
 
 ## [Unreleased]
 
+### Fixed
+- **Recipe MAC check survives `python3 -O`.** The HMAC verification was an
+  `assert`, which `-O` strips — a tampered blob would then decrypt to
+  garbage. It is now an explicit constant-time check that `sys.exit("bad MAC")`s
+  non-zero before any output. New test covers tampered ciphertext under `-O`.
+
 ## [0.1.9] - 2026-10-19
 
 ### Changed

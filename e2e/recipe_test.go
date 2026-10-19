@@ -5,6 +5,7 @@ import (
 	"crypto/aes"
 	"crypto/cipher"
 	"crypto/rand"
+	"encoding/base64"
 	"encoding/hex"
 	"os"
 	"os/exec"
@@ -147,3 +148,30 @@ func TestRecipeAESKnownAnswer(t *testing.T) {
 }
 
 func mustHex(s string) []byte { b, _ := hex.DecodeString(s); return b }
+
+// TestRecipeTamperedUnderO: the MAC check must not be an assert — under
+// python3 -O asserts vanish. Tampered ciphertext must exit non-zero with
+// nothing on stdout.
+func TestRecipeTamperedUnderO(t *testing.T) {
+	needPython(t)
+	py := recipePy(t)
+	blob, key := encryptV1IV(t, []byte("top secret plaintext"), make([]byte, 16))
+	raw, err := base64.RawURLEncoding.DecodeString(blob)
+	if err != nil {
+		t.Fatal(err)
+	}
+	raw[16] ^= 1 // flip a ciphertext bit
+	cmd := exec.Command("python3", "-O", "-c", py, key)
+	cmd.Stdin = strings.NewReader(b64u(raw))
+	var out, errb bytes.Buffer
+	cmd.Stdout, cmd.Stderr = &out, &errb
+	if err := cmd.Run(); err == nil {
+		t.Fatalf("tampered blob decrypted under -O: %q", out.String())
+	}
+	if out.Len() != 0 {
+		t.Fatalf("stdout not empty: %q", out.String())
+	}
+	if !strings.Contains(errb.String(), "bad MAC") {
+		t.Fatalf("stderr = %q, want bad MAC", errb.String())
+	}
+}

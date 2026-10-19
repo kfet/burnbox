@@ -136,7 +136,7 @@ b=u(sys.stdin.read().strip()); iv,ct,tag=b[:16],b[16:-32],b[-32:]
 m=u(sys.argv[1])
 ek=hmac.new(m,b"burnbox/v1/enc",hashlib.sha256).digest()
 mk=hmac.new(m,b"burnbox/v1/mac",hashlib.sha256).digest()
-assert hmac.compare_digest(tag,hmac.new(mk,iv+ct,hashlib.sha256).digest()),"bad MAC"
+if not hmac.compare_digest(tag,hmac.new(mk,iv+ct,hashlib.sha256).digest()): sys.exit("bad MAC")
 X=lambda a:(a<<1^(27 if a&128 else 0))&255
 S=[99]*256;p=q=1
 while 1:

@@ -19,7 +19,7 @@
     "m=u(sys.argv[1])\n" +
     "ek=hmac.new(m,b\"burnbox/v1/enc\",hashlib.sha256).digest()\n" +
     "mk=hmac.new(m,b\"burnbox/v1/mac\",hashlib.sha256).digest()\n" +
-    "assert hmac.compare_digest(tag,hmac.new(mk,iv+ct,hashlib.sha256).digest()),\"bad MAC\"\n" +
+    "if not hmac.compare_digest(tag,hmac.new(mk,iv+ct,hashlib.sha256).digest()): sys.exit(\"bad MAC\")\n" +
     "X=lambda a:(a<<1^(27 if a&128 else 0))&255\n" +
     "S=[99]*256;p=q=1\n" +
     "while 1:\n" +
