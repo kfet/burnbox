@@ -6,6 +6,8 @@ follow semantic versioning once it reaches 1.0.
 
 ## [Unreleased]
 
+## [0.1.9] - 2026-10-19
+
 ### Changed
 - **Recipient recipe no longer needs `openssl`.** The terminal decrypt is
   now `curl` + `python3` stdlib only: the `openssl enc -aes-256-ctr`
