@@ -6,6 +6,11 @@ follow semantic versioning once it reaches 1.0.
 
 ## [Unreleased]
 
+### Changed
+- `skills/deploy` now documents the real production target (`rn`, systemd
+  user unit, Caddy at burnbox.kfet.io) and ships `live-verify.sh` for the
+  post-deploy round-trip + burn check.
+
 ## [0.1.10] - 2026-10-19
 
 ### Fixed

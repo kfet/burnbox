@@ -1,9 +1,64 @@
 ---
 name: deploy
-description: Deploy burnbox to a host behind Tailscale Funnel, supervised by launchd (macOS) or systemd (Linux). Verify on a throwaway test unit on an alt port, then enable the prod unit.
+description: Deploy a burnbox release to production (host `rn`, racknerd VPS, systemd --user, fronted by Caddy at https://burnbox.kfet.io), with live round-trip + burn verification.
 ---
 
 # Deploy Skill
+
+## Production (the real target — use this)
+
+| | |
+|---|---|
+| Host | ssh alias `rn` (racknerd VPS, linux/amd64) |
+| Unit | systemd **user** unit `burnbox.service` |
+| Binary | `/home/kfet/.local/bin/burnbox serve -listen 127.0.0.1:8084` |
+| Front door | Caddy: `burnbox.kfet.io` -> `localhost:8084` (`/etc/caddy/conf.d/burnbox.caddy`) |
+| Public URL | https://burnbox.kfet.io |
+
+**Never touch `tailscale funnel` / `tailscale serve`** for burnbox — Caddy
+on `rn` is the only sanctioned public door. burnbox is stateless, so a
+restart only drops un-read secrets (correct fail-safe).
+
+### Steps (after the release CI is green)
+
+```bash
+V=0.1.10   # the version being deployed
+cd /tmp && rm -rf bbdl && mkdir bbdl && cd bbdl
+gh release download v$V -R kfet/burnbox \
+  -p "burnbox-$V-linux-amd64.tar.gz" -p checksums.txt
+grep linux-amd64 checksums.txt | shasum -a 256 -c   # must say OK
+tar xzf burnbox-$V-linux-amd64.tar.gz
+scp burnbox-$V-linux-amd64/burnbox rn:/tmp/burnbox-$V
+
+ssh rn "set -e; cd ~/.local/bin; cp -p burnbox burnbox.bak
+  install -m755 /tmp/burnbox-$V burnbox.new && mv burnbox.new burnbox
+  ./burnbox version; systemctl --user restart burnbox; sleep 1
+  systemctl --user is-active burnbox; curl -s http://127.0.0.1:8084/healthz"
+```
+
+### Verify (mandatory)
+
+```bash
+curl -s https://burnbox.kfet.io/version        # -> {"version":"<V>"}
+skills/deploy/live-verify.sh https://burnbox.kfet.io
+#   round-trip OK (<id>)      encrypt (Go, v1 contract) -> POST /s ->
+#                             curl | python3 using the recipe served live
+#   burn OK (2nd read 404)
+curl -sI https://burnbox.kfet.io/ | grep -i 'content-security\|referrer'
+```
+
+### Rollback
+
+```bash
+ssh rn 'cd ~/.local/bin && mv burnbox.bak burnbox && systemctl --user restart burnbox'
+```
+
+---
+
+## Appendix: generic self-host (launchd/systemd + Tailscale Funnel)
+
+Not used for production. Kept for other hosts only; do not apply on `rn`
+or zbox.
 
 Deploy `burnbox` to a host fronted by `tailscale funnel`. The server
 listens on loopback; funnel terminates TLS and forwards.
