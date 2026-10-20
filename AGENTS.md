@@ -130,38 +130,29 @@ Changing it is a breaking change and a version bump of the `v1` tag.
 
 ```bash
 curl -s https://HOST/s/<id> | python3 -c '
-import sys,base64,hmac,hashlib
-def u(s): return base64.urlsafe_b64decode(s+"="*(-len(s)%4))
-b=u(sys.stdin.read().strip()); iv,ct,tag=b[:16],b[16:-32],b[-32:]
-m=u(sys.argv[1])
-ek=hmac.new(m,b"burnbox/v1/enc",hashlib.sha256).digest()
-mk=hmac.new(m,b"burnbox/v1/mac",hashlib.sha256).digest()
-if not hmac.compare_digest(tag,hmac.new(mk,iv+ct,hashlib.sha256).digest()): sys.exit("bad MAC")
-X=lambda a:(a<<1^(27 if a&128 else 0))&255
-S=[99]*256;p=q=1
-while 1:
- p=p^X(p);q^=q<<1;q^=q<<2;q^=q<<4;q&=255;q^=9 if q&128 else 0
- S[p]=99^q^(q<<1|q>>7)&255^(q<<2|q>>6)&255^(q<<3|q>>5)&255^(q<<4|q>>4)&255
- if p==1: break
-w=[list(ek[i:i+4]) for i in range(0,32,4)];r=1
-for i in range(8,60):
- t=w[-1]
- if i%8==0: t=[S[x] for x in t[1:]+t[:1]];t[0]^=r;r=X(r)
- elif i%8==4: t=[S[x] for x in t]
- w.append([x^y for x,y in zip(w[i-8],t)])
-K=[sum(w[j:j+4],[]) for j in range(0,60,4)]
-def M(a):
- t=a[0]^a[1]^a[2]^a[3];return [a[i]^t^X(a[i]^a[(i+1)%4]) for i in range(4)]
+import sys,base64
+from hmac import*
+u=lambda s:base64.urlsafe_b64decode(s+"==")
+b=u(input());m=u(sys.argv[1]);H=lambda k,x:digest(k,x,"sha256")
+if not compare_digest(b[-32:],H(H(m,b"burnbox/v1/mac"),b[:-32])):sys.exit("bad MAC")
+X=lambda a:a*2^(a>>7)*283
+L=[1];exec("L+=[L[-1]^X(L[-1])];"*254);S={0:99}
+for k in range(255):q=L[-k];x=q^q*2^q*4^q*8^q*16;S[L[k]]=(x^x>>8)&255^99
+r=1;w=list(H(m,b"burnbox/v1/enc"))
+for j in range(32,240,4):
+ t=w[-4:]
+ if j%16<1:t=[S[x]for x in t]
+ if j%32<1:t=t[1:]+t[:1];t[0]^=r;r=X(r)
+ w+=[x^y for x,y in zip(w[j-32:],t)]
+M=lambda a:[x^a[0]^a[1]^a[2]^a[3]^X(x^a[i-3])for i,x in enumerate(a)]
 def E(s):
- s=[x^y for x,y in zip(s,K[0])]
- for r in range(1,15):
-  s=[S[s[(i+4*i)%16]] for i in range(16)]
-  if r<14: s=M(s[0:4])+M(s[4:8])+M(s[8:12])+M(s[12:16])
-  s=[x^y for x,y in zip(s,K[r])]
+ for r in range(15):
+  if r:s=[S[s[i*5%16]]for i in range(16)]
+  if r%14:s=sum(map(M,zip(*[iter(s)]*4)),[])
+  s=[x^y for x,y in zip(s,w[16*r:])]
  return s
-n=int.from_bytes(iv,"big");o=bytearray()
-for i in range(0,len(ct),16): o+=bytes(x^y for x,y in zip(ct[i:i+16],E(((n+i//16)%2**128).to_bytes(16,"big"))))
-sys.stdout.buffer.write(bytes(o))' '<fragment>'
+c=b[16:-32];n=int.from_bytes(b[:16],"big")
+open(1,"wb").write(bytes(x^y for x,y in zip(c,(y for k in range(len(c))for y in E((n+k).to_bytes(17,"big")[1:])))))' '<fragment>'
 ```
 
 The `/r/{id}` page renders exactly this, with `HOST` and `<id>` baked in

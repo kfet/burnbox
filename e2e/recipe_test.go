@@ -133,11 +133,11 @@ func TestRecipeAESKnownAnswer(t *testing.T) {
 		p  = "00112233445566778899aabbccddeeff"
 		ct = "8ea2b7ca516745bfeafc49904b496089"
 	)
-	kdf := `ek=hmac.new(m,b"burnbox/v1/enc",hashlib.sha256).digest()`
+	kdf := `H(m,b"burnbox/v1/enc")`
 	if !strings.Contains(py, kdf) {
 		t.Fatal("recipe KDF line changed; update KAT harness")
 	}
-	py = strings.Replace(py, kdf, `ek=bytes.fromhex("`+k+`")`, 1)
+	py = strings.Replace(py, kdf, `bytes.fromhex("`+k+`")`, 1)
 	master := []byte("kat-master")
 	iv := append(mustHex(p), make([]byte, 16)...)
 	tag := hmacSHA256(hmacSHA256(master, []byte("burnbox/v1/mac")), iv)

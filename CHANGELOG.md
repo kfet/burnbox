@@ -7,6 +7,13 @@ follow semantic versioning once it reaches 1.0.
 ## [Unreleased]
 
 ### Changed
+- **Recipient recipe is ~30% smaller** (Python 1340 → 948 bytes) and still
+  readable: S-box computed from powers of 3 (GF(2^8) inverse + affine),
+  flat key schedule, `hmac.digest`, `input()`. Same wire contract;
+  explicit constant-time `sys.exit("bad MAC")` kept; max-size secret
+  decrypts in ~1.5 s on macOS python3.9.
+
+### Changed
 - `skills/deploy` now documents the real production target (`rn`, systemd
   user unit, Caddy at burnbox.kfet.io) and ships `live-verify.sh` for the
   post-deploy round-trip + burn check.
