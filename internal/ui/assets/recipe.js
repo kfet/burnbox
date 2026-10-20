@@ -15,27 +15,24 @@
   var py =
     "import sys,base64\n" +
     "from hmac import*\n" +
-    "u=lambda s:base64.urlsafe_b64decode(s+\"==\")\n" +
+    "u=lambda s:base64.b64decode(s+\"==\",\"-_\")\n" +
     "b=u(input());m=u(sys.argv[1]);H=lambda k,x:digest(k,x,\"sha256\")\n" +
     "if not compare_digest(b[-32:],H(H(m,b\"burnbox/v1/mac\"),b[:-32])):sys.exit(\"bad MAC\")\n" +
-    "X=lambda a:a*2^(a>>7)*283\n" +
-    "L=[1];exec(\"L+=[L[-1]^X(L[-1])];\"*254);S={0:99}\n" +
-    "for k in range(255):q=L[-k];x=q^q*2^q*4^q*8^q*16;S[L[k]]=(x^x>>8)&255^99\n" +
-    "r=1;w=list(H(m,b\"burnbox/v1/enc\"))\n" +
-    "for j in range(32,240,4):\n" +
+    "O=int.__xor__;X=lambda a:a*2^(a>>7)*283\n" +
+    "L=[p:=1]+[p:=p^X(p)for _ in\" \"*255];S={0:99}\n" +
+    "for p,q in zip(L,L[::-1]):x=q^q*2^q*4^q*8^q*16;S[p]=x%256^x>>8^99\n" +
+    "w=list(H(m,b\"burnbox/v1/enc\"))\n" +
+    "for j in range(8,60):\n" +
     " t=w[-4:]\n" +
-    " if j%16<1:t=[S[x]for x in t]\n" +
-    " if j%32<1:t=t[1:]+t[:1];t[0]^=r;r=X(r)\n" +
-    " w+=[x^y for x,y in zip(w[j-32:],t)]\n" +
-    "M=lambda a:[x^a[0]^a[1]^a[2]^a[3]^X(x^a[i-3])for i,x in enumerate(a)]\n" +
+    " if j%4<1:f=j%8<1;t=[S[x]for x in t[f:]+t[:f]];t[0]^=f<<j//8>>1\n" +
+    " w+=map(O,w[-32:],t)\n" +
     "def E(s):\n" +
     " for r in range(15):\n" +
     "  if r:s=[S[s[i*5%16]]for i in range(16)]\n" +
-    "  if r%14:s=sum(map(M,zip(*[iter(s)]*4)),[])\n" +
-    "  s=[x^y for x,y in zip(s,w[16*r:])]\n" +
+    "  if r%14:s=[X(x^s[i&12|i+1&3])^s[i^1]^s[i^2]^s[i^3]for i,x in enumerate(s)]\n" +
+    "  s=[*map(O,s,w[16*r:])]\n" +
     " return s\n" +
-    "c=b[16:-32];n=int.from_bytes(b[:16],\"big\")\n" +
-    "open(1,\"wb\").write(bytes(x^y for x,y in zip(c,(y for k in range(len(c))for y in E((n+k).to_bytes(17,\"big\")[1:])))))";
+    "open(1,\"wb\").write(bytes(map(O,b[16:-32],(y for k in range(len(b))for y in E((int(b[:16].hex(),16)+k).to_bytes(17,\"big\")[1:])))))";
   var full = "curl -s " + new URL("../s/" + id, location.href).href +
     " | python3 -c '" + py + "' '" + key + "'";
 

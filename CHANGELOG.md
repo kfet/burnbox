@@ -6,6 +6,14 @@ follow semantic versioning once it reaches 1.0.
 
 ## [Unreleased]
 
+## [0.1.12] - 2026-10-20
+
+### Changed
+- **Recipient recipe golfed further** (Python 947 → 839 bytes), still
+  readable and unpacked: whole-state MixColumns, word-indexed key schedule
+  with computed rcon, `map(int.__xor__)`, walrus-built S-box. Same wire
+  contract; explicit constant-time `sys.exit("bad MAC")` kept.
+
 ## [0.1.11] - 2026-10-19
 
 ### Changed
