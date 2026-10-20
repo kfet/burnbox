@@ -6,6 +6,8 @@ follow semantic versioning once it reaches 1.0.
 
 ## [Unreleased]
 
+## [0.1.13] - 2026-10-20
+
 ### Added
 - **Pages state the encryption.** The create page and both recipe
   variants (human and `?ai`) now say: AES-256-CTR + HMAC-SHA256
