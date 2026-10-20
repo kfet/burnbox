@@ -59,8 +59,7 @@
   // Cross-link the two variants, preserving the key in the fragment.
   var ailink = document.getElementById("ailink");
   if (aiMode) {
-    document.getElementById("title").innerHTML =
-      '<span class="b">burn</span>box — AI agent recipe';
+    document.getElementById("title").textContent = "AI agent recipe";
     document.getElementById("intro").innerHTML =
       "Annotated recipe for an AI agent. The comments tell it to keep the " +
       "secret out of logs, not to preview the URL (it burns on first read), " +

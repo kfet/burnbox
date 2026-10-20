@@ -14,6 +14,7 @@ import (
 	"crypto/rand"
 	"crypto/sha256"
 	"encoding/base64"
+	"github.com/kfet/burnbox/internal/contract"
 	"io"
 	"net/http"
 	"net/http/httptest"
@@ -46,8 +47,8 @@ func encryptV1(t *testing.T, plaintext string) (blob, key string) {
 	if _, err := rand.Read(iv); err != nil {
 		t.Fatal(err)
 	}
-	ek := hmacSHA256(master, []byte("burnbox/v1/enc"))
-	mk := hmacSHA256(master, []byte("burnbox/v1/mac"))
+	ek := hmacSHA256(master, []byte(contract.LabelEnc))
+	mk := hmacSHA256(master, []byte(contract.LabelMAC))
 
 	block, err := aes.NewCipher(ek)
 	if err != nil {

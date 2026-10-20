@@ -192,6 +192,7 @@ cmd/burnbox/main.go         # entry point: serve, version (covignored — wiring
 doc.go / doc_test.go        # package doc + Version/Commit/BuildDate vars
 internal/store/             # in-memory TTL blob store, atomic burn
 internal/server/            # HTTP handlers (blind blob store + page serving)
+internal/contract/          # crypto contract names/labels (strings only) — drift-guarded by e2e/contract_test.go
 internal/ui/                # //go:embed static SPA + recipe template
 e2e/                        # make e2e: full round-trip incl. pure-python recipient
 VERSION CHANGELOG.md README.md Makefile .covignore .github/workflows/

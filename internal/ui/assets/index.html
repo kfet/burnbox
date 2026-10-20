@@ -22,6 +22,7 @@
   main { margin:auto; width:100%; max-width:680px; padding:24px; }
   h1 { font-size:1.4rem; margin:0 0 .25rem; }
   h1 .b { color:var(--acc); }
+  h1 a { color:inherit; text-decoration:none; }
   p.sub { color:var(--mut); margin:.25rem 0 1.25rem; }
   .card { background:var(--card); border:1px solid var(--bd); border-radius:12px; padding:18px; margin-bottom:16px; }
   label { display:block; font-size:.8rem; color:var(--mut); margin-bottom:6px; text-transform:uppercase; letter-spacing:.05em; }
@@ -47,7 +48,7 @@
 </head>
 <body>
 <main>
-  <h1><span class="b">burn</span>box</h1>
+  <h1><a href="./" title="burnbox home"><span class="b">burn</span>box</a></h1>
   <p class="sub">Server-blind one-time secrets. Encrypted in your browser; the key never leaves this page.</p>
 
   <!-- CREATE -->
@@ -86,6 +87,8 @@
     <p id="verr" class="err"></p>
     <p class="muted">This secret has now been destroyed on the server.</p>
   </section>
+
+  <p class="muted" id="crypto">Encryption: <strong>AES-256-CTR + HMAC-SHA256</strong> (encrypt-then-MAC). Both keys are derived with HMAC-SHA256 from the key in the URL fragment, using the labels <code>burnbox/v1/enc</code> and <code>burnbox/v1/mac</code>. The key is never sent to the server.</p>
 
   <p class="muted">No plaintext, no key, and no logs of either ever reach the server. <a href="https://github.com/kfet/burnbox" target="_blank" rel="noopener noreferrer">how it works &amp; source</a><span id="ver" class="muted"></span></p>
 </main>

@@ -14,6 +14,7 @@
          background:var(--bg); color:var(--fg); display:flex; min-height:100vh; }
   main { margin:auto; width:100%; max-width:760px; padding:24px; }
   h1 { font-size:1.3rem; } h1 .b { color:var(--acc); }
+  h1 a { color:inherit; text-decoration:none; }
   .card { background:var(--card); border:1px solid var(--bd); border-radius:12px; padding:18px; margin-bottom:16px; }
   .muted { color:var(--mut); font-size:.9rem; }
   pre { white-space:pre-wrap; word-break:break-all; background:#0c0e12; border:1px solid var(--bd);
@@ -27,7 +28,7 @@
 </head>
 <body>
 <main>
-  <h1 id="title"><span class="b">burn</span>box — terminal recipe</h1>
+  <h1><a href="../" title="burnbox home"><span class="b">burn</span>box</a> — <span id="title">terminal recipe</span></h1>
   <p class="muted" id="intro">Decrypt this one-time secret on a bare macOS / Linux box. Needs only
      <code>curl</code> and <code>python3</code> — nothing to install.
      Running it <strong>burns</strong> the secret. The key below comes from this page's URL
@@ -37,6 +38,7 @@
     <button id="copy">Copy command</button>
     <p id="err" class="err"></p>
   </div>
+  <p class="muted" id="crypto">Encryption: <strong>AES-256-CTR + HMAC-SHA256</strong> (encrypt-then-MAC). Both keys are derived with HMAC-SHA256 from the key in the URL fragment, using the labels <code>burnbox/v1/enc</code> and <code>burnbox/v1/mac</code>. The key is never sent to the server.</p>
   <p class="muted" id="ailink"></p>
   <p class="muted"><a href="../">← create a new secret</a></p>
 </main>

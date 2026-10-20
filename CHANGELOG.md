@@ -6,6 +6,20 @@ follow semantic versioning once it reaches 1.0.
 
 ## [Unreleased]
 
+### Added
+- **Pages state the encryption.** The create page and both recipe
+  variants (human and `?ai`) now say: AES-256-CTR + HMAC-SHA256
+  (encrypt-then-MAC), keys derived with HMAC-SHA256 from the URL-fragment
+  key using labels `burnbox/v1/enc` / `burnbox/v1/mac`, key never sent to
+  the server.
+- **Crypto drift guard.** `internal/contract` holds the cipher/MAC names
+  and KDF labels; `e2e/contract_test.go` fails if the pages, README,
+  AGENTS.md, browser JS, terminal recipe or Go encryptors disagree with it.
+
+### Changed
+- The **burnbox** title on every page is now a link to the home page
+  (same styling).
+
 ## [0.1.12] - 2026-10-20
 
 ### Changed

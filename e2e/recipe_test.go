@@ -7,6 +7,7 @@ import (
 	"crypto/rand"
 	"encoding/base64"
 	"encoding/hex"
+	"github.com/kfet/burnbox/internal/contract"
 	"os"
 	"os/exec"
 	"strconv"
@@ -80,8 +81,8 @@ func encryptV1IV(t *testing.T, pt, iv []byte) (blob, key string) {
 	if _, err := rand.Read(master); err != nil {
 		t.Fatal(err)
 	}
-	ek := hmacSHA256(master, []byte("burnbox/v1/enc"))
-	mk := hmacSHA256(master, []byte("burnbox/v1/mac"))
+	ek := hmacSHA256(master, []byte(contract.LabelEnc))
+	mk := hmacSHA256(master, []byte(contract.LabelMAC))
 	block, _ := aes.NewCipher(ek)
 	ct := make([]byte, len(pt))
 	cipher.NewCTR(block, iv).XORKeyStream(ct, pt)
@@ -133,14 +134,14 @@ func TestRecipeAESKnownAnswer(t *testing.T) {
 		p  = "00112233445566778899aabbccddeeff"
 		ct = "8ea2b7ca516745bfeafc49904b496089"
 	)
-	kdf := `H(m,b"burnbox/v1/enc")`
+	kdf := `H(m,b"` + contract.LabelEnc + `")`
 	if !strings.Contains(py, kdf) {
 		t.Fatal("recipe KDF line changed; update KAT harness")
 	}
 	py = strings.Replace(py, kdf, `bytes.fromhex("`+k+`")`, 1)
 	master := []byte("kat-master")
 	iv := append(mustHex(p), make([]byte, 16)...)
-	tag := hmacSHA256(hmacSHA256(master, []byte("burnbox/v1/mac")), iv)
+	tag := hmacSHA256(hmacSHA256(master, []byte(contract.LabelMAC)), iv)
 	blob := b64u(append(iv, tag...))
 	if got := hex.EncodeToString(runPy(t, py, blob, b64u(master))); got != ct {
 		t.Fatalf("AES-256 KAT: got %s want %s", got, ct)
