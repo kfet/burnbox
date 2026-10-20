@@ -6,6 +6,8 @@ follow semantic versioning once it reaches 1.0.
 
 ## [Unreleased]
 
+## [0.1.11] - 2026-10-19
+
 ### Changed
 - **Recipient recipe is ~30% smaller** (Python 1340 → 948 bytes) and still
   readable: S-box computed from powers of 3 (GF(2^8) inverse + affine),
