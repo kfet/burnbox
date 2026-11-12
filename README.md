@@ -49,6 +49,7 @@ burnbox version          # print version, commit, build date
 | `-max-size`  | `262144`  | maximum ciphertext blob size, in bytes (256 KiB) |
 | `-max-ttl`   | `168h`    | ceiling for requested TTLs (7 days)      |
 | `-min-ttl`   | `1h`      | floor / default TTL                      |
+| `-connect-src` | (none) | extra CSP connect-src sources after 'self' (for sandboxed hosts) |
 
 A blob's lifetime is set per-secret via `POST /s?ttl=<seconds>`, clamped
 into `[min-ttl, max-ttl]`; an absent or invalid `ttl` defaults to
