@@ -14,11 +14,20 @@
 //   - internal/ui     — embedded single-page app and recipient recipe
 package burnbox
 
-// Version is the current build version, sourced from the VERSION file at
-// release time. Kept as a var (not const) so release builds can override
-// it via -ldflags -X github.com/kfet/burnbox.Version=...
+import (
+	_ "embed"
+	"strings"
+)
+
+//go:embed VERSION
+var versionFile string
+
+// Version is the current build version. It is generated from the VERSION
+// file via go:embed, so a plain `go build` / `go install` can never drift
+// from it. Kept as a var so release builds can still override it via
+// -ldflags -X github.com/kfet/burnbox.Version=...
 var (
-	Version   = "0.1.3"
+	Version   = strings.TrimSpace(versionFile)
 	Commit    = "unknown" // git short SHA, set via -ldflags at release time
 	BuildDate = "unknown" // ISO-8601 UTC, set via -ldflags at release time
 )

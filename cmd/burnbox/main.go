@@ -2,7 +2,7 @@
 //
 // Subcommands:
 //
-//	burnbox serve [-listen ADDR] [-max-size BYTES] [-max-ttl DUR] [-min-ttl DUR]
+//	burnbox serve [-listen ADDR] [-max-size BYTES] [-max-ttl DUR] [-min-ttl DUR] [-connect-src SRC]
 //	burnbox version
 package main
 
@@ -15,6 +15,7 @@ import (
 	"net/http"
 	"os"
 	"os/signal"
+	"strings"
 	"syscall"
 	"time"
 
@@ -34,6 +35,10 @@ serve flags:
   -max-size BYTES  maximum ciphertext blob size (default 262144)
   -max-ttl DUR     ceiling for requested TTLs (default 168h)
   -min-ttl DUR     floor / default TTL (default 1h)
+  -connect-src SRC extra CSP connect-src sources, space separated, added
+                   after 'self' (e.g. "https://burnbox.example"). Needed
+                   when the page is served in a sandboxed (opaque) origin:
+                   WebKit then does not match 'self' and Encrypt fails.
 `
 
 func main() {
@@ -69,6 +74,7 @@ func cmdServe(args []string, stdout, stderr io.Writer) int {
 	maxSize := fs.Int("max-size", 256<<10, "maximum ciphertext blob size in bytes")
 	maxTTL := fs.Duration("max-ttl", 7*24*time.Hour, "ceiling for requested TTLs")
 	minTTL := fs.Duration("min-ttl", time.Hour, "floor / default TTL")
+	connectSrc := fs.String("connect-src", "", "extra CSP connect-src sources (space separated), added after 'self'")
 	if err := fs.Parse(args); err != nil {
 		return 2
 	}
@@ -82,7 +88,7 @@ func cmdServe(args []string, stdout, stderr io.Writer) int {
 
 	srv := &http.Server{
 		Addr:              *listen,
-		Handler:           server.New(st, burnbox.Version),
+		Handler:           server.New(st, burnbox.Version, server.WithConnectSrc(strings.Fields(*connectSrc)...)),
 		ReadHeaderTimeout: 10 * time.Second,
 	}
 

@@ -1,6 +1,10 @@
 package burnbox
 
-import "testing"
+import (
+	"os"
+	"strings"
+	"testing"
+)
 
 func TestVersionNonEmpty(t *testing.T) {
 	if Version == "" {
@@ -11,5 +15,17 @@ func TestVersionNonEmpty(t *testing.T) {
 	}
 	if BuildDate == "" {
 		t.Fatal("BuildDate must not be empty")
+	}
+}
+
+// TestVersionMatchesFile guards against a hardcoded Version drifting
+// from the VERSION file.
+func TestVersionMatchesFile(t *testing.T) {
+	b, err := os.ReadFile("VERSION")
+	if err != nil {
+		t.Fatal(err)
+	}
+	if want := strings.TrimSpace(string(b)); Version != want {
+		t.Fatalf("Version = %q, VERSION file = %q", Version, want)
 	}
 }

@@ -274,7 +274,23 @@ func TestCSPMatchesInlineBootstrap(t *testing.T) {
 	body := html[i+len(open) : i+j]
 	sum := sha256.Sum256([]byte(body))
 	want := "sha256-" + base64.StdEncoding.EncodeToString(sum[:])
-	if !strings.Contains(contentSecurityPolicy, want) {
-		t.Fatalf("CSP missing inline-script hash %q\nCSP: %s", want, contentSecurityPolicy)
+	if !strings.Contains(buildCSP(nil), want) {
+		t.Fatalf("CSP missing inline-script hash %q\nCSP: %s", want, buildCSP(nil))
+	}
+}
+
+func TestWithConnectSrc(t *testing.T) {
+	s := New(store.New(store.Options{}), "t", WithConnectSrc("https://a.example", " ", "https://b.example"))
+	rec := httptest.NewRecorder()
+	s.ServeHTTP(rec, httptest.NewRequest("GET", "/", nil))
+	csp := rec.Header().Get("Content-Security-Policy")
+	if !strings.Contains(csp, "connect-src 'self' https://a.example https://b.example;") {
+		t.Fatalf("CSP: %s", csp)
+	}
+	def := New(store.New(store.Options{}), "t")
+	rec = httptest.NewRecorder()
+	def.ServeHTTP(rec, httptest.NewRequest("GET", "/", nil))
+	if !strings.Contains(rec.Header().Get("Content-Security-Policy"), "connect-src 'self';") {
+		t.Fatal("default CSP changed")
 	}
 }

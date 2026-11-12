@@ -8,6 +8,7 @@ import (
 	"io"
 	"net/http"
 	"strconv"
+	"strings"
 	"time"
 
 	"github.com/kfet/burnbox/internal/store"
@@ -18,13 +19,28 @@ import (
 type Server struct {
 	store   *store.Store
 	version string
+	csp     string
 	mux     *http.ServeMux
+}
+
+// Option configures a Server.
+type Option func(*Server)
+
+// WithConnectSrc appends extra CSP connect-src sources (for example an
+// explicit https://host origin) after 'self'. Needed when the page runs
+// in a sandboxed (opaque) origin, where WebKit does not match 'self'
+// and blocks the same-origin fetch to POST /s.
+func WithConnectSrc(sources ...string) Option {
+	return func(s *Server) { s.csp = buildCSP(sources) }
 }
 
 // New constructs a Server backed by st and registers all routes. version
 // is reported by GET /version and surfaced in the frontend footer.
-func New(st *store.Store, version string) *Server {
-	s := &Server{store: st, version: version, mux: http.NewServeMux()}
+func New(st *store.Store, version string, opts ...Option) *Server {
+	s := &Server{store: st, version: version, csp: buildCSP(nil), mux: http.NewServeMux()}
+	for _, o := range opts {
+		o(s)
+	}
 	s.mux.HandleFunc("GET /healthz", s.handleHealth)
 	s.mux.HandleFunc("GET /version", s.handleVersion)
 	s.mux.HandleFunc("POST /s", s.handlePut)
@@ -38,7 +54,7 @@ func New(st *store.Store, version string) *Server {
 	return s
 }
 
-// contentSecurityPolicy locks the frontend down so a compromised page
+// buildCSP locks the frontend down so a compromised page
 // can't exfiltrate the fragment key to a third party: scripts only from
 // same origin plus one pinned inline bootstrap (the trailing-slash guard
 // in index.html, allowed via its sha256 hash — kept in sync by a test in
@@ -46,15 +62,23 @@ func New(st *store.Store, version string) *Server {
 // (they can't leak data the way scripts can).
 const indexBootstrapSHA256 = "sha256-tdSBCzLum2QCktYTh8vg9+Mtoe4It3sD2+jK+K2WPpo="
 
-const contentSecurityPolicy = "default-src 'none'; script-src 'self' '" + indexBootstrapSHA256 + "'; " +
-	"style-src 'unsafe-inline'; connect-src 'self'; img-src 'self'; " +
-	"base-uri 'none'; form-action 'none'; frame-ancestors 'none'"
+func buildCSP(extraConnect []string) string {
+	connect := "'self'"
+	for _, src := range extraConnect {
+		if src = strings.TrimSpace(src); src != "" {
+			connect += " " + src
+		}
+	}
+	return "default-src 'none'; script-src 'self' '" + indexBootstrapSHA256 + "'; " +
+		"style-src 'unsafe-inline'; connect-src " + connect + "; img-src 'self'; " +
+		"base-uri 'none'; form-action 'none'; frame-ancestors 'none'"
+}
 
 // secureHeaders sets defence-in-depth headers for browser-delivered
 // pages and scripts.
-func secureHeaders(w http.ResponseWriter) {
+func (s *Server) secureHeaders(w http.ResponseWriter) {
 	h := w.Header()
-	h.Set("Content-Security-Policy", contentSecurityPolicy)
+	h.Set("Content-Security-Policy", s.csp)
 	h.Set("Referrer-Policy", "no-referrer")
 	h.Set("X-Content-Type-Options", "nosniff")
 }
@@ -150,33 +174,33 @@ func (s *Server) handleIndex(w http.ResponseWriter, r *http.Request) {
 		writeJSON(w, http.StatusNotFound, map[string]string{"error": "not found"})
 		return
 	}
-	serveAsset(w, ctHTML, ui.Index)
+	s.serveAsset(w, ctHTML, ui.Index)
 }
 
 func (s *Server) handleRecipe(w http.ResponseWriter, _ *http.Request) {
-	serveAsset(w, ctHTML, ui.Recipe)
+	s.serveAsset(w, ctHTML, ui.Recipe)
 }
 
 func (s *Server) handleScript(w http.ResponseWriter, _ *http.Request) {
-	serveAsset(w, ctJS, ui.Script)
+	s.serveAsset(w, ctJS, ui.Script)
 }
 
 func (s *Server) handleRecipeScript(w http.ResponseWriter, _ *http.Request) {
-	serveAsset(w, ctJS, ui.RecipeScript)
+	s.serveAsset(w, ctJS, ui.RecipeScript)
 }
 
 func (s *Server) handleFavicon(w http.ResponseWriter, _ *http.Request) {
-	serveAsset(w, ctSVG, ui.Favicon)
+	s.serveAsset(w, ctSVG, ui.Favicon)
 }
 
 func (s *Server) handleAppleTouchIcon(w http.ResponseWriter, _ *http.Request) {
-	serveAsset(w, ctPNG, ui.AppleTouchIcon)
+	s.serveAsset(w, ctPNG, ui.AppleTouchIcon)
 }
 
 // serveAsset writes an embedded static asset with security headers and a
 // no-store cache policy.
-func serveAsset(w http.ResponseWriter, contentType string, body []byte) {
-	secureHeaders(w)
+func (s *Server) serveAsset(w http.ResponseWriter, contentType string, body []byte) {
+	s.secureHeaders(w)
 	w.Header().Set("Content-Type", contentType)
 	w.Header().Set("Cache-Control", "no-store")
 	_, _ = w.Write(body)

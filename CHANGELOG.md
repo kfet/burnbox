@@ -6,6 +6,19 @@ follow semantic versioning once it reaches 1.0.
 
 ## [Unreleased]
 
+## [0.1.14] - 2026-11-12
+
+### Added
+- **`serve -connect-src`.** Adds extra CSP `connect-src` sources after
+  `'self'`. Use it when the page is served in a sandboxed (opaque)
+  origin: WebKit (Safari, every iOS browser) does not match `'self'`
+  there and blocks Encrypt.
+
+### Fixed
+- **Version no longer drifts.** `Version` is generated from the
+  `VERSION` file via `go:embed` (it was a stale hardcoded `0.1.3` for
+  plain `go build`). A test guards it.
+
 ## [0.1.13] - 2026-10-20
 
 ### Added
