@@ -3,11 +3,18 @@
 // fragment and is never sent to the server.
 "use strict";
 (function () {
-  var parts = location.pathname.split("/");
+  // document.baseURI, not location: in a srcdoc iframe location is
+  // "about:srcdoc" and has no fragment; the host shim sets baseURI.
+  var here = new URL(document.baseURI);
+  var parts = here.pathname.split("/");
   var id = parts[parts.length - 1];
   var key = location.hash.replace(/^#/, "");
   var cmd = document.getElementById("cmd");
   var err = document.getElementById("err");
+  if (!/^https?:$/.test(location.protocol)) {
+    err.textContent = "This page cannot read its key inside an embedded view. Open the recipe link directly.";
+    return;
+  }
   if (!key) {
     err.textContent = "No key in the URL fragment — this recipe link is incomplete.";
     return;
@@ -33,14 +40,14 @@
     "  s=[*map(O,s,w[16*r:])]\n" +
     " return s\n" +
     "open(1,\"wb\").write(bytes(map(O,b[16:-32],(y for k in range(len(b))for y in E((int(b[:16].hex(),16)+k).to_bytes(17,\"big\")[1:])))))";
-  var full = "curl -s " + new URL("../s/" + id, location.href).href +
+  var full = "curl -s " + new URL("../s/" + id, here).href +
     " | python3 -c '" + py + "' '" + key + "'";
 
   // AI-agent variant: same decrypt, but the secret is written to a 0600
   // file (never the console) and the command is prefixed with prompt
   // comments telling an AI how to handle a burn-after-read secret safely.
   // Selected with ?ai on the recipe URL so it can be shared as a link.
-  var aiMode = new URLSearchParams(location.search).has("ai");
+  var aiMode = new URLSearchParams(here.search).has("ai");
   var aiCmd =
     "# burnbox one-time secret — instructions for the AI agent running this:\n" +
     "#  - The output is a SECRET. Do NOT print, echo, or log it, and do NOT\n" +
@@ -64,11 +71,11 @@
       "Annotated recipe for an AI agent. The comments tell it to keep the " +
       "secret out of logs, not to preview the URL (it burns on first read), " +
       "and to pipe the output to a temporary file it deletes when done.";
-    ailink.innerHTML = '<a href="' + location.pathname + location.hash +
+    ailink.innerHTML = '<a href="' + here.pathname + location.hash +
       '">← human terminal version</a>';
   } else {
     ailink.innerHTML = 'Handing this to an AI agent? Use the ' +
-      '<a href="' + location.pathname + "?ai" + location.hash +
+      '<a href="' + here.pathname + "?ai" + location.hash +
       '">AI-annotated version</a> — it tells the agent to keep the secret out ' +
       'of logs and not to burn it by previewing the link.';
   }

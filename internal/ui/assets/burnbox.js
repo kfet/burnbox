@@ -101,9 +101,20 @@ const $ = (id) => document.getElementById(id);
 // that respect whatever path prefix burnbox is mounted under (e.g. a
 // Tailscale `--set-path=/secret` mount). All same-origin fetches use
 // plain relative paths so they resolve against this base automatically.
+//
+// Uses document.baseURI, not location.href: inside a srcdoc iframe (e.g.
+// the dcow share_open MCP App) location.href is "about:srcdoc", while
+// the host's shim sets document.baseURI to the real share URL.
 function baseURL() {
-  return new URL(".", location.href).href;
+  const u = new URL(".", document.baseURI);
+  u.search = "";
+  u.hash = "";
+  return u.href;
 }
+
+// inFrameDoc is true when the page runs in a srcdoc/about: frame, where
+// there is no real URL and no fragment, so links must open top-level.
+const inFrameDoc = !/^https?:$/.test(location.protocol);
 
 async function doCreate() {
   $("cerr").textContent = "";
@@ -124,7 +135,8 @@ async function doCreate() {
     const url = base + "#" + id + "." + key;
     const recipe = base + "r/" + id + "#" + key;
     $("link").textContent = url;
-    $("rlink").innerHTML = '<a href="' + recipe + '">terminal recipe</a>';
+    $("rlink").innerHTML = '<a href="' + recipe + '"' +
+      (inFrameDoc ? ' target="_blank" rel="noopener"' : "") + '>terminal recipe</a>';
     $("copy").onclick = () => {
       const btn = $("copy");
       const flash = (msg, ok) => {
@@ -185,7 +197,14 @@ function init() {
     return;
   }
   $("enc").onclick = doCreate;
-  $("again").onclick = () => location.assign(baseURL());
+  // Reset in place: navigating would move a srcdoc frame off its document.
+  $("again").onclick = () => {
+    $("result").classList.add("hide");
+    $("create").classList.remove("hide");
+    $("link").textContent = "";
+    $("rlink").textContent = "";
+    $("secret").focus();
+  };
 }
 
 document.addEventListener("DOMContentLoaded", init);

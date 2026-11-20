@@ -44,6 +44,7 @@ func New(st *store.Store, version string, opts ...Option) *Server {
 	s.mux.HandleFunc("GET /healthz", s.handleHealth)
 	s.mux.HandleFunc("GET /version", s.handleVersion)
 	s.mux.HandleFunc("POST /s", s.handlePut)
+	s.mux.HandleFunc("OPTIONS /s", s.handlePutPreflight)
 	s.mux.HandleFunc("GET /s/{id}", s.handleGet)
 	s.mux.HandleFunc("GET /r/{id}", s.handleRecipe)
 	s.mux.HandleFunc("GET /burnbox.js", s.handleScript)
@@ -60,7 +61,7 @@ func New(st *store.Store, version string, opts ...Option) *Server {
 // in index.html, allowed via its sha256 hash — kept in sync by a test in
 // this package), network only to same origin. Inline styles are allowed
 // (they can't leak data the way scripts can).
-const indexBootstrapSHA256 = "sha256-tdSBCzLum2QCktYTh8vg9+Mtoe4It3sD2+jK+K2WPpo="
+const indexBootstrapSHA256 = "sha256-CVPssJplk0afzQjsDM+q84Osegq0vjbJ9G+htsP6RMM="
 
 func buildCSP(extraConnect []string) string {
 	connect := "'self'"
@@ -106,8 +107,36 @@ func (s *Server) handleVersion(w http.ResponseWriter, _ *http.Request) {
 	writeJSON(w, http.StatusOK, map[string]string{"version": s.version})
 }
 
+// allowOpaqueOrigin lets a page in a sandboxed opaque-origin frame
+// (Origin: null, e.g. the dcow share_open srcdoc iframe) read the reply
+// to POST /s. Only "null" is echoed, and only on the create path: POST
+// /s takes ciphertext in and returns a fresh id, so it leaks nothing.
+// GET /s/{id} never gets CORS headers — a cross-origin read must not be
+// able to burn and read a secret.
+func allowOpaqueOrigin(w http.ResponseWriter, r *http.Request) bool {
+	if r.Header.Get("Origin") != "null" {
+		return false
+	}
+	h := w.Header()
+	h.Set("Access-Control-Allow-Origin", "null")
+	h.Add("Vary", "Origin")
+	return true
+}
+
+// handlePutPreflight answers the CORS preflight for POST /s.
+func (s *Server) handlePutPreflight(w http.ResponseWriter, r *http.Request) {
+	if allowOpaqueOrigin(w, r) {
+		h := w.Header()
+		h.Set("Access-Control-Allow-Methods", "POST")
+		h.Set("Access-Control-Allow-Headers", "Content-Type")
+		h.Set("Access-Control-Max-Age", "600")
+	}
+	w.WriteHeader(http.StatusNoContent)
+}
+
 // handlePut stores a posted ciphertext blob and returns its id.
 func (s *Server) handlePut(w http.ResponseWriter, r *http.Request) {
+	allowOpaqueOrigin(w, r)
 	// Cap the read at maxSize+1 so we can distinguish "too large".
 	max := s.store.MaxSize()
 	body, err := io.ReadAll(io.LimitReader(r.Body, int64(max)+1))

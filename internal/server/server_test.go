@@ -294,3 +294,60 @@ func TestWithConnectSrc(t *testing.T) {
 		t.Fatal("default CSP changed")
 	}
 }
+
+// The trailing-slash guard must not navigate outside http(s): in a
+// srcdoc iframe pathname is "srcdoc" and the redirect blanks the page.
+func TestBootstrapGuardHTTPOnly(t *testing.T) {
+	html := string(ui.Index)
+	if !strings.Contains(html, "<script>if(/^https?:$/.test(location.protocol)&&") {
+		t.Fatal("trailing-slash guard is not gated on http(s) protocol")
+	}
+}
+
+func TestPutCORSOpaqueOriginOnly(t *testing.T) {
+	srv := httptest.NewServer(New(store.New(store.Options{}), "t"))
+	defer srv.Close()
+
+	req, _ := http.NewRequest("OPTIONS", srv.URL+"/s", nil)
+	req.Header.Set("Origin", "null")
+	res, err := http.DefaultClient.Do(req)
+	if err != nil {
+		t.Fatal(err)
+	}
+	res.Body.Close()
+	if res.StatusCode != http.StatusNoContent || res.Header.Get("Access-Control-Allow-Origin") != "null" ||
+		res.Header.Get("Access-Control-Allow-Headers") != "Content-Type" {
+		t.Fatalf("preflight: %d %v", res.StatusCode, res.Header)
+	}
+
+	req, _ = http.NewRequest("POST", srv.URL+"/s", strings.NewReader("blob"))
+	req.Header.Set("Origin", "null")
+	res, err = http.DefaultClient.Do(req)
+	if err != nil {
+		t.Fatal(err)
+	}
+	var out map[string]string
+	_ = json.NewDecoder(res.Body).Decode(&out)
+	res.Body.Close()
+	if res.Header.Get("Access-Control-Allow-Origin") != "null" || out["id"] == "" {
+		t.Fatalf("POST: %v %v", res.Header, out)
+	}
+
+	// Other origins get nothing.
+	req, _ = http.NewRequest("OPTIONS", srv.URL+"/s", nil)
+	req.Header.Set("Origin", "https://evil.example")
+	res, _ = http.DefaultClient.Do(req)
+	res.Body.Close()
+	if res.Header.Get("Access-Control-Allow-Origin") != "" {
+		t.Fatal("non-null origin got CORS")
+	}
+
+	// The burn path never gets CORS, even for Origin: null.
+	req, _ = http.NewRequest("GET", srv.URL+"/s/"+out["id"], nil)
+	req.Header.Set("Origin", "null")
+	res, _ = http.DefaultClient.Do(req)
+	res.Body.Close()
+	if res.Header.Get("Access-Control-Allow-Origin") != "" {
+		t.Fatal("GET /s/{id} must never send CORS headers")
+	}
+}
