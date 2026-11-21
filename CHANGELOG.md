@@ -6,6 +6,18 @@ follow semantic versioning once it reaches 1.0.
 
 ## [Unreleased]
 
+## [0.1.15] - 2026-11-20
+
+### Fixed
+- **Blank page in sandboxed srcdoc frames** (e.g. a dcow share_open MCP
+  App). The trailing-slash guard now runs only on http(s); link building
+  uses `document.baseURI`; "New secret" resets in place; the recipe page
+  says to open the link directly when it has no fragment.
+
+### Added
+- CORS on `POST /s` for `Origin: null` only, so an opaque-origin frame can
+  read the new id. `GET /s/{id}` never sends CORS headers.
+
 ## [0.1.14] - 2026-11-12
 
 ### Added
