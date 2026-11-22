@@ -6,11 +6,21 @@ follow semantic versioning once it reaches 1.0.
 
 ## [Unreleased]
 
+## [0.1.16] - 2026-11-20
+
+### Changed
+- The footer version is baked into the page at startup, not fetched with
+  a second request. It now shows when the page is embedded in a
+  sandboxed frame.
+
+### Fixed
+- Copy buttons fall back to `execCommand("copy")` when the Clipboard API
+  is blocked (e.g. by a frame's permissions policy).
+
 ## [0.1.15] - 2026-11-20
 
 ### Fixed
-- **Blank page in sandboxed srcdoc frames** (e.g. a dcow share_open MCP
-  App). The trailing-slash guard now runs only on http(s); link building
+- **Blank page in sandboxed srcdoc frames** (pages embedded by a host). The trailing-slash guard now runs only on http(s); link building
   uses `document.baseURI`; "New secret" resets in place; the recipe page
   says to open the link directly when it has no fragment.
 

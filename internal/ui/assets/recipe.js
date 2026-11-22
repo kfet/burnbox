@@ -91,12 +91,19 @@
         copyBtn.className = "";
       }, 1600);
     };
+    var legacy = function () {
+      var r = document.createRange();
+      r.selectNodeContents(cmd);
+      var sel = window.getSelection();
+      sel.removeAllRanges();
+      sel.addRange(r);
+      try { return document.execCommand("copy"); } catch (e) { return false; }
+    };
+    var done = function (ok) { ok ? flash("Copied \u2713", true) : flash("Press \u2318/Ctrl-C to copy", false); };
     if (navigator.clipboard && navigator.clipboard.writeText) {
-      navigator.clipboard.writeText(shown)
-        .then(function () { flash("Copied \u2713", true); })
-        .catch(function () { flash("Press \u2318/Ctrl-C to copy", false); });
+      navigator.clipboard.writeText(shown).then(function () { done(true); }, function () { done(legacy()); });
     } else {
-      flash("Press \u2318/Ctrl-C to copy", false);
+      done(legacy());
     }
   };
 })();

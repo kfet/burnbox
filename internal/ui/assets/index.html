@@ -12,7 +12,7 @@
      fix it client-side. This exact text is pinned in the CSP via a
      sha256 hash (see internal/server) — do not edit without updating it
      (a test enforces the match). Skipped outside http(s): in a srcdoc
-     iframe (dcow share_open) pathname is "srcdoc" and the redirect would
+     iframe (an embedding host) pathname is "srcdoc" and the redirect would
      navigate the frame away to a blank page. -->
 <script>if(/^https?:$/.test(location.protocol)&&location.pathname.slice(-1)!=='/')location.replace(location.pathname+'/'+location.search+location.hash)</script>
 <title>burnbox — one-time secret</title>
@@ -92,7 +92,7 @@
 
   <p class="muted" id="crypto">Encryption: <strong>AES-256-CTR + HMAC-SHA256</strong> (encrypt-then-MAC). Both keys are derived with HMAC-SHA256 from the key in the URL fragment, using the labels <code>burnbox/v1/enc</code> and <code>burnbox/v1/mac</code>. The key is never sent to the server.</p>
 
-  <p class="muted">No plaintext, no key, and no logs of either ever reach the server. <a href="https://github.com/kfet/burnbox" target="_blank" rel="noopener noreferrer">how it works &amp; source</a><span id="ver" class="muted"></span></p>
+  <p class="muted">No plaintext, no key, and no logs of either ever reach the server. <a href="https://github.com/kfet/burnbox" target="_blank" rel="noopener noreferrer">how it works &amp; source</a><span id="ver" class="muted">{{VERSION}}</span></p>
 </main>
 
 <script src="burnbox.js"></script>

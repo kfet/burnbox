@@ -351,3 +351,13 @@ func TestPutCORSOpaqueOriginOnly(t *testing.T) {
 		t.Fatal("GET /s/{id} must never send CORS headers")
 	}
 }
+
+func TestIndexHasBakedVersion(t *testing.T) {
+	s := New(store.New(store.Options{}), "9.9.9<x>")
+	rec := httptest.NewRecorder()
+	s.ServeHTTP(rec, httptest.NewRequest("GET", "/", nil))
+	body := rec.Body.String()
+	if !strings.Contains(body, `<span id="ver" class="muted"> · 9.9.9&lt;x&gt;</span>`) || strings.Contains(body, "{{VERSION}}") {
+		t.Fatal("version not baked into index")
+	}
+}

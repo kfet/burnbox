@@ -4,7 +4,9 @@
 package server
 
 import (
+	"bytes"
 	"encoding/json"
+	"html"
 	"io"
 	"net/http"
 	"strconv"
@@ -21,6 +23,7 @@ type Server struct {
 	version string
 	csp     string
 	mux     *http.ServeMux
+	index   []byte // ui.Index with the version baked in
 }
 
 // Option configures a Server.
@@ -41,6 +44,9 @@ func New(st *store.Store, version string, opts ...Option) *Server {
 	for _, o := range opts {
 		o(s)
 	}
+	// Bake the version into the page once, so the footer needs no
+	// extra request (which may be blocked when the page is embedded).
+	s.index = bytes.Replace(ui.Index, []byte("{{VERSION}}"), []byte(" · "+html.EscapeString(version)), 1)
 	s.mux.HandleFunc("GET /healthz", s.handleHealth)
 	s.mux.HandleFunc("GET /version", s.handleVersion)
 	s.mux.HandleFunc("POST /s", s.handlePut)
@@ -108,7 +114,7 @@ func (s *Server) handleVersion(w http.ResponseWriter, _ *http.Request) {
 }
 
 // allowOpaqueOrigin lets a page in a sandboxed opaque-origin frame
-// (Origin: null, e.g. the dcow share_open srcdoc iframe) read the reply
+// (Origin: null, e.g. a sandboxed srcdoc iframe in an embedding host) read the reply
 // to POST /s. Only "null" is echoed, and only on the create path: POST
 // /s takes ciphertext in and returns a fresh id, so it leaks nothing.
 // GET /s/{id} never gets CORS headers — a cross-origin read must not be
@@ -203,7 +209,7 @@ func (s *Server) handleIndex(w http.ResponseWriter, r *http.Request) {
 		writeJSON(w, http.StatusNotFound, map[string]string{"error": "not found"})
 		return
 	}
-	s.serveAsset(w, ctHTML, ui.Index)
+	s.serveAsset(w, ctHTML, s.index)
 }
 
 func (s *Server) handleRecipe(w http.ResponseWriter, _ *http.Request) {

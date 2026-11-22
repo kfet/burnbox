@@ -102,9 +102,9 @@ const $ = (id) => document.getElementById(id);
 // Tailscale `--set-path=/secret` mount). All same-origin fetches use
 // plain relative paths so they resolve against this base automatically.
 //
-// Uses document.baseURI, not location.href: inside a srcdoc iframe (e.g.
-// the dcow share_open MCP App) location.href is "about:srcdoc", while
-// the host's shim sets document.baseURI to the real share URL.
+// Uses document.baseURI, not location.href: inside a srcdoc iframe (any
+// embedding host) location.href is "about:srcdoc", while
+// a host shim may set document.baseURI to the real share URL.
 function baseURL() {
   const u = new URL(".", document.baseURI);
   u.search = "";
@@ -115,6 +115,26 @@ function baseURL() {
 // inFrameDoc is true when the page runs in a srcdoc/about: frame, where
 // there is no real URL and no fragment, so links must open top-level.
 const inFrameDoc = !/^https?:$/.test(location.protocol);
+
+// copyText copies text to the clipboard. It tries the async Clipboard
+// API first, then falls back to selecting el and execCommand("copy"),
+// which still works in frames where the Clipboard API is blocked by a
+// permissions policy. Resolves true on success. On failure the text in
+// el stays selected so the user can copy it by hand.
+function copyText(text, el) {
+  const legacy = () => {
+    const r = document.createRange();
+    r.selectNodeContents(el);
+    const sel = window.getSelection();
+    sel.removeAllRanges();
+    sel.addRange(r);
+    try { return document.execCommand("copy"); } catch (e) { return false; }
+  };
+  if (navigator.clipboard && navigator.clipboard.writeText) {
+    return navigator.clipboard.writeText(text).then(() => true, () => legacy());
+  }
+  return Promise.resolve(legacy());
+}
 
 async function doCreate() {
   $("cerr").textContent = "";
@@ -148,13 +168,8 @@ async function doCreate() {
           btn.classList.remove("ok");
         }, 1600);
       };
-      if (navigator.clipboard && navigator.clipboard.writeText) {
-        navigator.clipboard.writeText(url)
-          .then(() => flash("Copied \u2713", true))
-          .catch(() => flash("Press \u2318/Ctrl-C to copy", false));
-      } else {
-        flash("Press \u2318/Ctrl-C to copy", false);
-      }
+      copyText(url, $("link")).then((ok) =>
+        ok ? flash("Copied \u2713", true) : flash("Press \u2318/Ctrl-C to copy", false));
     };
     $("create").classList.add("hide");
     $("result").classList.remove("hide");
@@ -181,15 +196,7 @@ async function doView(id, key) {
   }
 }
 
-function showVersion() {
-  fetch("version")
-    .then((r) => (r.ok ? r.json() : null))
-    .then((d) => { if (d && d.version) $("ver").textContent = " · " + d.version; })
-    .catch(() => {});
-}
-
 function init() {
-  showVersion();
   const h = location.hash.replace(/^#/, "");
   const dot = h.indexOf(".");
   if (dot > 0) {
