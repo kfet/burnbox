@@ -47,6 +47,9 @@
   .hide { display:none; }
   pre { white-space:pre-wrap; word-break:break-all; }
 </style>
+<!-- In <head> with defer: the download starts at once, and the script
+     runs after parsing, so the buttons get handlers sooner. -->
+<script src="burnbox.js" defer></script>
 </head>
 <body>
 <main>
@@ -95,6 +98,5 @@
   <p class="muted">No plaintext, no key, and no logs of either ever reach the server. <a href="https://github.com/kfet/burnbox" target="_blank" rel="noopener noreferrer">how it works &amp; source</a><span id="ver" class="muted">{{VERSION}}</span></p>
 </main>
 
-<script src="burnbox.js"></script>
 </body>
 </html>

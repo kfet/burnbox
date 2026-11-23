@@ -6,6 +6,12 @@ follow semantic versioning once it reaches 1.0.
 
 ## [Unreleased]
 
+## [0.1.17] - 2026-11-22
+
+### Changed
+- `burnbox.js` loads from `<head>` with `defer`, so it downloads while
+  the page parses and the buttons work sooner after load.
+
 ## [0.1.16] - 2026-11-20
 
 ### Changed
